@@ -43,10 +43,4 @@ Plutôt qu'un portfolio classique, j'ai conçu une expérience **RPG 3D interact
 
 ---
 
-## 🚀 Lancer le projet en local
 
-Aucune installation ou dépendance n'est requise :
-
-1. Clonez le dépôt :
-   ```bash
-   git clone [https://github.com/BRIVAL-M/portfolio.git](https://github.com/BRIVAL-M/portfolio.git)
