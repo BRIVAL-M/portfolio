@@ -1,0 +1,2294 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Miky AKA BPM | Portfolio RPG 3D</title>
+
+    <!-- =========================================================================
+         BALISES META DE PARTAGE (OPEN GRAPH / FACEBOOK / LINKEDIN / DISCORD / X)
+         À MODIFIER UNE FOIS LE SITE EN LIGNE :
+         Remplace "https://ton-domaine.fr/" par l'URL réelle de ton portfolio
+         (ex: https://brival-m.github.io/ton-repo/) pour que l'aperçu s'affiche !
+         ========================================================================= -->
+    <meta name="description" content="Explore l'univers RPG 3D interactif de Miky AKA BPM, Développeur Web Front-End. Relève les quêtes et découvre ses projets !">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Miky AKA BPM | Portfolio RPG 3D">
+    <meta property="og:description" content="Explore l'univers RPG 3D interactif de Miky AKA BPM, Développeur Web Front-End. Relève les quêtes et découvre ses projets !">
+    <!-- À MODIFIER EN LIGNE : Mets l'URL absolue complète vers partage-img.png -->
+    <meta property="og:url" content="https://brival-m.github.io/portfolio/">
+    <meta property="og:image" content="https://brival-m.github.io/portfolio/partage-img.png">
+    <meta property="og:image:alt" content="Aperçu du Portfolio RPG 3D de Miky AKA BPM">
+
+    <!-- Balises Twitter / X -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Miky AKA BPM | Portfolio RPG 3D">
+    <meta name="twitter:description" content="Explore l'univers RPG 3D interactif de Miky AKA BPM, Développeur Web Front-End.">
+    <!-- À MODIFIER EN LIGNE : Mets l'URL absolue complète vers partage-img.png -->
+    <meta name="twitter:image" content="https://brival-m.github.io/portfolio/partage-img.png">
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Three.js & Tone.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;800&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
+
+    <style>
+        * {
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        html, body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background-color: #070b14;
+            font-family: 'Inter', sans-serif;
+            color: #f8fafc;
+            touch-action: none;
+        }
+
+        #canvas-container {
+            position: fixed;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+
+        .font-epic { font-family: 'Cinzel', serif; }
+        .font-modern { font-family: 'Plus Jakarta Sans', 'Inter', sans-serif; }
+        .font-code { font-family: 'JetBrains Mono', monospace; }
+
+        .rpg-panel {
+            background: rgba(11, 18, 32, 0.85);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            border: 1px solid rgba(56, 189, 248, 0.35);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.65), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+        }
+
+        .rpg-gold-border {
+            border: 1px solid rgba(250, 204, 21, 0.5);
+            box-shadow: 0 0 24px rgba(250, 204, 21, 0.14);
+        }
+
+        @keyframes pulseGlow {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.04); }
+        }
+        .animate-pulse-glow {
+            animation: pulseGlow 2.4s infinite ease-in-out;
+        }
+
+        @keyframes floatUpFade {
+            0% { opacity: 1; transform: translate(-50%, 0) scale(0.95); }
+            100% { opacity: 0; transform: translate(-50%, -48px) scale(1.1); }
+        }
+        .floating-popup {
+            position: fixed;
+            left: 50%;
+            top: 42%;
+            z-index: 60;
+            pointer-events: none;
+            animation: floatUpFade 1.35s ease-out forwards;
+        }
+
+        .custom-scroll::-webkit-scrollbar { width: 6px; }
+        .custom-scroll::-webkit-scrollbar-track { background: rgba(15, 23, 42, 0.6); border-radius: 99px; }
+        .custom-scroll::-webkit-scrollbar-thumb { background: rgba(56, 189, 248, 0.45); border-radius: 99px; }
+    </style>
+</head>
+<body>
+
+    <!-- SCÈNE 3D -->
+    <div id="canvas-container"></div>
+
+    <!-- ÉCRAN D'ACCUEIL -->
+    <div id="welcome-screen" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/90 backdrop-blur-md p-4">
+        <div class="rpg-panel rpg-gold-border rounded-3xl max-w-xl w-full p-6 sm:p-8 text-center relative overflow-hidden">
+            <div class="w-20 h-20 mx-auto rounded-2xl overflow-hidden shadow-xl mb-4 bg-slate-900">
+                <img src="https://github.com/BRIVAL-M.png" onerror="this.src='https://placehold.co/120x120/0f172a/38bdf8?text=BPM'" alt="Miky AKA BPM" class="w-full h-full object-cover">
+            </div>
+
+            <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-sky-500/15 border border-sky-400/40 text-sky-300 text-xs font-bold tracking-wider uppercase mb-2">
+                <i class="fa-solid fa-wand-magic-sparkles"></i> Univers RPG Interactif 3D
+            </span>
+
+            <h1 class="font-modern text-2xl sm:text-4xl font-extrabold text-white tracking-tight mt-1">
+                Miky <span class="text-amber-400">AKA BPM</span>
+            </h1>
+            <p class="text-slate-300 text-xs sm:text-sm mt-2 leading-relaxed max-w-md mx-auto">
+                Explore l'archipel flottant, parle à <strong>Lyra</strong> (avec narration vocale), collecte les <strong>10 pièces d'or</strong>, affronte l'<strong>Arène Infinie</strong>, joue à la <strong>Borne d'Arcade</strong> et traverse les <strong>Portails</strong> pour découvrir mes projets !
+            </p>
+
+            <div class="grid grid-cols-3 gap-2.5 mt-5 text-left text-xs">
+                <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-3">
+                    <div class="text-amber-400 font-bold mb-1"><i class="fa-solid fa-coins mr-1"></i>1. Pièces</div>
+                    <p class="text-slate-400 text-[11px]">Ramasse 10 pièces pour ouvrir le 1er portail.</p>
+                </div>
+                <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-3">
+                    <div class="text-emerald-400 font-bold mb-1"><i class="fa-solid fa-khanda mr-1"></i>2. Quêtes</div>
+                    <p class="text-slate-400 text-[11px]">Combats les mobs & relève les défis des mondes.</p>
+                </div>
+                <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-3">
+                    <div class="text-purple-400 font-bold mb-1"><i class="fa-solid fa-gamepad mr-1"></i>3. Arcade</div>
+                    <p class="text-slate-400 text-[11px]">Mini-jeux musicaux & Arène infinie inclus !</p>
+                </div>
+            </div>
+
+            <button id="start-adventure-btn" class="mt-6 w-full py-3.5 px-6 rounded-2xl bg-gradient-to-r from-sky-500 via-indigo-500 to-purple-600 hover:from-sky-400 hover:to-purple-500 text-white font-modern font-extrabold text-sm sm:text-base shadow-lg shadow-sky-500/25 transition-all cursor-pointer animate-pulse-glow">
+                <i class="fa-solid fa-play mr-2"></i>Entrer dans le Monde de BPM
+            </button>
+        </div>
+    </div>
+
+    <!-- HUD SUPÉRIEUR -->
+    <div id="game-hud" class="fixed top-0 left-0 right-0 z-20 p-3 sm:p-4 pointer-events-none flex flex-wrap items-start justify-between gap-2">
+        <!-- Carte Héros + Compteur de Pièces + Monde actuel -->
+        <div class="rpg-panel rounded-2xl p-2.5 sm:p-3.5 flex items-center gap-3.5 pointer-events-auto">
+            <div class="relative shrink-0">
+                <img src="https://github.com/BRIVAL-M.png" onerror="this.src='https://placehold.co/80x80/0f172a/38bdf8?text=BPM'" alt="Miky AKA BPM" class="w-12 h-12 sm:w-14 sm:h-14 rounded-xl object-cover shadow-md">
+            </div>
+            <div class="min-w-0">
+                <div class="flex items-center gap-2 flex-wrap">
+                    <h2 class="font-modern font-extrabold tracking-tight text-sm sm:text-base text-white whitespace-nowrap">Miky AKA BPM</h2>
+                    <span id="hud-zone-badge" class="whitespace-nowrap bg-slate-800/90 border border-slate-600/70 text-slate-200 font-modern font-bold text-[10px] tracking-wider px-2.5 py-0.5 rounded-full shadow-sm uppercase">
+                        ARCHIPEL
+                    </span>
+                    <a href="https://github.com/BRIVAL-M" target="_blank" rel="noopener noreferrer" class="text-slate-400 hover:text-white transition-colors" title="Profil GitHub">
+                        <i class="fa-brands fa-github"></i>
+                    </a>
+                </div>
+                <div class="flex items-center gap-3 mt-1.5">
+                    <!-- Compteur de pièces -->
+                    <div class="flex items-center gap-1.5 bg-amber-500/15 border border-amber-400/40 px-2.5 py-0.5 rounded-lg whitespace-nowrap">
+                        <i class="fa-solid fa-coins text-amber-400 text-xs"></i>
+                        <span id="hud-coins-text" class="text-xs font-extrabold text-amber-300">0 Pièces</span>
+                    </div>
+                    <!-- Progression de la zone actuelle -->
+                    <div id="hud-quest-status" class="text-xs font-semibold text-sky-300 whitespace-nowrap">
+                        Collecte 10 pièces !
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Boutons d'accès rapide -->
+        <div class="flex items-center gap-2 pointer-events-auto ml-auto">
+            <button id="hud-talk-lyra-btn" class="rpg-panel hover:border-pink-400/70 transition-all rounded-2xl px-3 py-2.5 flex items-center gap-2 text-pink-300 hover:text-white cursor-pointer" title="Parler à Lyra (Guide)">
+                <i class="fa-solid fa-comment-dots"></i>
+                <span class="hidden sm:inline text-xs font-bold">Guide Lyra</span>
+            </button>
+
+            <button id="hud-minigames-btn" class="rpg-panel hover:border-purple-400/70 transition-all rounded-2xl px-3 py-2.5 flex items-center gap-2 text-purple-300 hover:text-white cursor-pointer" title="Borne d'Arcade & Mini-Jeux BPM">
+                <i class="fa-solid fa-gamepad"></i>
+                <span class="hidden sm:inline text-xs font-bold">Mini-Jeux</span>
+            </button>
+
+            <button id="hud-about-bpm-btn" class="rpg-panel hover:border-amber-400/70 transition-all rounded-2xl px-3 py-2.5 flex items-center gap-2 text-amber-300 hover:text-white cursor-pointer" title="Présentation de Miky AKA BPM">
+                <i class="fa-solid fa-id-card"></i>
+                <span class="hidden sm:inline text-xs font-bold">Qui est BPM ?</span>
+            </button>
+
+            <button id="hud-projects-btn" class="rpg-panel hover:border-emerald-400/70 transition-all rounded-2xl px-3 py-2.5 flex items-center gap-2 text-emerald-300 hover:text-white cursor-pointer" title="Voir les projets débloqués">
+                <i class="fa-solid fa-folder-open"></i>
+                <span class="hidden sm:inline text-xs font-bold">Projets</span>
+            </button>
+
+            <button id="toggle-sound-btn" class="rpg-panel hover:border-sky-400/60 transition-all rounded-2xl p-2.5 text-sky-300 hover:text-white cursor-pointer" title="Activer/Couper Audio & Voix">
+                <i id="sound-icon" class="fa-solid fa-volume-high text-base"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- BANNIÈRE D'OBJECTIF EN COURS -->
+    <div id="objective-banner" class="fixed top-20 sm:top-24 left-1/2 -translate-x-1/2 z-10 pointer-events-none px-3 max-w-full">
+        <div class="rpg-panel rounded-full px-4 py-1.5 flex items-center gap-2 text-xs font-semibold text-slate-200 shadow-lg">
+            <span class="w-2 h-2 rounded-full bg-amber-400 animate-ping shrink-0"></span>
+            <span id="objective-text" class="truncate">Explore l'île, parle à Lyra et ramasse les 10 pièces d'or !</span>
+        </div>
+    </div>
+
+    <!-- BULLE DE DIALOGUE DE LYRA (PNJ FÉMININ AVEC VOIX) -->
+    <div id="lyra-dialogue-box" class="fixed bottom-24 sm:bottom-28 left-1/2 -translate-x-1/2 z-30 hidden max-w-2xl w-[94%] pointer-events-auto">
+        <div class="rpg-panel rpg-gold-border rounded-3xl p-4 sm:p-5 relative">
+            <div class="flex items-start gap-3.5">
+                <div class="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-gradient-to-br from-pink-500 to-purple-600 flex items-center justify-center text-white text-2xl shrink-0 shadow-lg border border-pink-300/50">
+                    <i class="fa-solid fa-sparkles"></i>
+                </div>
+                <div class="flex-1 min-w-0">
+                    <div class="flex items-center justify-between gap-2 mb-1">
+                        <div class="flex items-center gap-2">
+                            <span class="font-modern font-extrabold text-pink-300 text-sm sm:text-base">Lyra • Guide de l'Archipel</span>
+                            <span id="voice-speaking-badge" class="hidden items-center gap-1 text-[10px] bg-pink-500/20 text-pink-300 border border-pink-400/40 px-2 py-0.5 rounded-full font-bold">
+                                <i class="fa-solid fa-waveform-lines animate-pulse"></i> Voix active
+                            </span>
+                        </div>
+                        <button id="close-dialogue-btn" class="text-slate-400 hover:text-white text-sm p-1 cursor-pointer">
+                            <i class="fa-solid fa-xmark"></i>
+                        </button>
+                    </div>
+                    <p id="lyra-dialogue-text" class="text-slate-200 text-xs sm:text-sm leading-relaxed"></p>
+
+                    <div class="flex flex-wrap gap-2 mt-3.5">
+                        <button id="dlg-rules-btn" class="px-3 py-1.5 rounded-xl bg-sky-500/20 hover:bg-sky-500/30 border border-sky-400/50 text-sky-200 text-xs font-bold cursor-pointer">
+                            <i class="fa-solid fa-compass mr-1"></i>Comment ouvrir les portails ?
+                        </button>
+                        <button id="dlg-bpm-btn" class="px-3 py-1.5 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 border border-amber-400/50 text-amber-200 text-xs font-bold cursor-pointer">
+                            <i class="fa-solid fa-user-astronaut mr-1"></i>Présente-moi Miky (BPM)
+                        </button>
+                        <button id="dlg-respawn-coins-btn" class="px-3 py-1.5 rounded-xl bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-400/50 text-emerald-200 text-xs font-bold cursor-pointer">
+                            <i class="fa-solid fa-coins mr-1"></i>Faire apparaître 10 nouvelles pièces
+                        </button>
+                        <button id="dlg-replay-voice-btn" class="px-3 py-1.5 rounded-xl bg-pink-500/20 hover:bg-pink-500/30 border border-pink-400/50 text-pink-200 text-xs font-bold cursor-pointer">
+                            <i class="fa-solid fa-volume-high mr-1"></i>Réécouter
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- INVITE D'INTERACTION CONTEXTUELLE -->
+    <div id="interaction-prompt" class="fixed bottom-24 left-1/2 -translate-x-1/2 z-20 hidden pointer-events-auto">
+        <button id="interact-btn" class="rpg-panel rpg-gold-border rounded-2xl px-5 py-3 flex items-center gap-3 text-white font-bold text-xs sm:text-sm shadow-2xl cursor-pointer hover:scale-105 transition-transform">
+            <span id="interact-icon" class="w-8 h-8 rounded-xl bg-amber-500/20 border border-amber-400/50 flex items-center justify-center text-amber-300">
+                <i class="fa-solid fa-hand-pointer"></i>
+            </span>
+            <div class="text-left">
+                <div id="interact-title" class="text-amber-300 font-extrabold">Interagir</div>
+                <div id="interact-subtitle" class="text-[11px] text-slate-300 font-normal">Appuie sur [E] ou clique ici</div>
+            </div>
+        </button>
+    </div>
+
+    <!-- CONTRÔLES TACTILES & BOUTON ATTAQUE ÉPÉE -->
+    <div id="bottom-controls" class="fixed bottom-4 left-4 right-4 z-20 flex items-end justify-between pointer-events-none">
+        <!-- Joystick virtuel mobile -->
+        <div id="joystick-zone" class="w-28 h-28 rounded-full rpg-panel pointer-events-auto relative flex items-center justify-center md:opacity-65 hover:opacity-100 transition-opacity">
+            <div id="joystick-knob" class="w-11 h-11 rounded-full bg-gradient-to-br from-sky-400 to-indigo-500 shadow-lg border border-white/40 pointer-events-none"></div>
+        </div>
+
+        <!-- Bouton Attaque à l'épée + Aide clavier -->
+        <div class="flex flex-col items-end gap-2 pointer-events-auto">
+            <div class="hidden md:flex items-center gap-2 rpg-panel rounded-xl px-3 py-1.5 text-[11px] text-slate-300">
+                <span><kbd class="px-1.5 py-0.5 bg-slate-800 rounded border border-slate-600 text-white">ZQSD / Flèches</kbd> Bouger</span>
+                <span>•</span>
+                <span><kbd class="px-1.5 py-0.5 bg-slate-800 rounded border border-slate-600 text-white">F / Espace</kbd> Épée</span>
+                <span>•</span>
+                <span><kbd class="px-1.5 py-0.5 bg-slate-800 rounded border border-slate-600 text-white">E</kbd> Interagir</span>
+            </div>
+
+            <button id="sword-attack-btn" class="w-16 h-16 sm:w-18 sm:h-18 rounded-2xl bg-gradient-to-br from-rose-500 to-amber-600 border-2 border-amber-300/70 shadow-xl shadow-rose-600/30 flex flex-col items-center justify-center text-white active:scale-90 transition-transform cursor-pointer" title="Attaquer à l'épée [F]">
+                <i class="fa-solid fa-khanda text-xl sm:text-2xl"></i>
+                <span class="text-[10px] font-extrabold uppercase tracking-wider mt-0.5">Épée</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- MODALE : PRÉSENTATION COMPLÈTE MIKY AKA BPM -->
+    <div id="bpm-modal" class="fixed inset-0 z-40 hidden items-center justify-center bg-slate-950/85 backdrop-blur-md p-3 sm:p-6">
+        <div class="rpg-panel rpg-gold-border rounded-3xl max-w-2xl w-full max-h-[90vh] flex flex-col overflow-hidden">
+            <div class="p-5 sm:p-6 border-b border-slate-800 flex items-center justify-between bg-slate-900/70">
+                <div class="flex items-center gap-3.5">
+                    <img src="https://github.com/BRIVAL-M.png" onerror="this.src='https://placehold.co/80x80/0f172a/38bdf8?text=BPM'" alt="Miky AKA BPM" class="w-14 h-14 rounded-2xl object-cover shadow-md">
+                    <div>
+                        <span class="text-[11px] font-bold uppercase tracking-wider text-amber-400">Profil Créateur & Développeur</span>
+                        <h3 class="font-modern text-xl sm:text-2xl font-extrabold text-white">Miky AKA BPM</h3>
+                    </div>
+                </div>
+                <button id="close-bpm-modal" class="w-9 h-9 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 flex items-center justify-center cursor-pointer">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <div class="p-5 sm:p-6 overflow-y-auto custom-scroll space-y-4 text-sm text-slate-200 leading-relaxed">
+                <div class="p-4 rounded-2xl bg-gradient-to-r from-sky-500/15 via-indigo-500/15 to-purple-500/15 border border-sky-400/30 font-semibold text-white">
+                    Miky AKA BPM est un Développeur Web Front-End 💻 | Créatif 🎨 | Curieux 🧠 | Toujours en train de coder, tester et créer 🚀
+                </div>
+
+                <div class="flex items-center gap-3 p-3.5 rounded-2xl bg-emerald-500/10 border border-emerald-400/30 text-emerald-200 font-semibold">
+                    <span class="text-2xl">🎓</span>
+                    <span>Diplômé de la formation Développeur Web chez <strong>OpenClassrooms</strong></span>
+                </div>
+
+                <p>
+                    Il est passionné par la création d'interfaces web modernes, interactives et responsive. Il aime transformer une idée en projet concret, expérimenter avec JavaScript et relever de nouveaux défis techniques.
+                </p>
+
+                <div>
+                    <h4 class="text-xs font-extrabold uppercase tracking-wider text-amber-400 mb-2.5">Ses passions :</h4>
+                    <div class="grid grid-cols-2 sm:grid-cols-3 gap-2.5 text-xs font-bold">
+                        <div class="p-3 rounded-xl bg-slate-900/90 border border-slate-700/80 flex items-center gap-2">🎮 Jeux & projets JavaScript</div>
+                        <div class="p-3 rounded-xl bg-slate-900/90 border border-slate-700/80 flex items-center gap-2">🎨 Créativité & design</div>
+                        <div class="p-3 rounded-xl bg-slate-900/90 border border-slate-700/80 flex items-center gap-2">🎼 Musique</div>
+                        <div class="p-3 rounded-xl bg-slate-900/90 border border-slate-700/80 flex items-center gap-2">🎥 Vidéo</div>
+                        <div class="p-3 rounded-xl bg-slate-900/90 border border-slate-700/80 flex items-center gap-2">📷 Photo</div>
+                        <div class="p-3 rounded-xl bg-slate-900/90 border border-slate-700/80 flex items-center gap-2">🌍 Voyages</div>
+                    </div>
+                </div>
+
+                <div class="pt-2 flex flex-wrap gap-3">
+                    <button id="bpm-voice-btn" class="flex-1 py-3 px-4 rounded-xl bg-pink-500/20 hover:bg-pink-500/30 border border-pink-400/50 text-pink-200 font-bold text-xs flex items-center justify-center gap-2 cursor-pointer">
+                        <i class="fa-solid fa-volume-high"></i> Écouter la présentation vocale
+                    </button>
+                    <a href="https://github.com/BRIVAL-M" target="_blank" rel="noopener noreferrer" class="flex-1 py-3 px-4 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-600 text-white font-bold text-xs flex items-center justify-center gap-2">
+                        <i class="fa-brands fa-github text-base"></i> Voir le GitHub BRIVAL-M
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODALE : PROJETS DÉBLOQUÉS (OPENCLASSROOMS & PROJETS PERSO BPM) -->
+    <div id="projects-modal" class="fixed inset-0 z-40 hidden items-center justify-center bg-slate-950/85 backdrop-blur-md p-3 sm:p-6">
+        <div class="rpg-panel rpg-gold-border rounded-3xl max-w-4xl w-full max-h-[92vh] flex flex-col overflow-hidden">
+            <div class="p-4 sm:p-6 border-b border-slate-800 flex items-center justify-between bg-slate-900/70">
+                <div>
+                    <span id="projects-modal-subtitle" class="text-[11px] font-bold uppercase tracking-wider text-emerald-400">Grimoire des Réalisations</span>
+                    <h3 id="projects-modal-title" class="font-modern text-lg sm:text-2xl font-extrabold text-white">Projets de Miky AKA BPM</h3>
+                </div>
+                <button id="close-projects-modal" class="w-9 h-9 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 flex items-center justify-center cursor-pointer">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <!-- Onglets de catégories -->
+            <div class="px-5 pt-4 flex gap-2 border-b border-slate-800/80 pb-3 bg-slate-900/40">
+                <button id="tab-oc-btn" class="px-4 py-2 rounded-xl text-xs sm:text-sm font-bold bg-emerald-500/25 border border-emerald-400 text-emerald-200 cursor-pointer">
+                    🎓 Formation OpenClassrooms (6)
+                </button>
+                <button id="tab-perso-btn" class="px-4 py-2 rounded-xl text-xs sm:text-sm font-bold bg-slate-800/80 border border-slate-700 text-slate-400 hover:text-white cursor-pointer">
+                    🚀 Projets Perso BPM (3)
+                </button>
+            </div>
+
+            <div id="projects-grid" class="p-5 sm:p-6 overflow-y-auto custom-scroll grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+        </div>
+    </div>
+
+    <!-- MODALE : BORNE D'ARCADE & MINI-JEUX BPM -->
+    <div id="arcade-modal" class="fixed inset-0 z-40 hidden items-center justify-center bg-slate-950/85 backdrop-blur-md p-3 sm:p-6">
+        <div class="rpg-panel rpg-gold-border rounded-3xl max-w-2xl w-full max-h-[92vh] flex flex-col overflow-hidden">
+            <div class="p-4 sm:p-6 border-b border-slate-800 flex items-center justify-between bg-slate-900/70">
+                <div class="flex items-center gap-3">
+                    <div class="w-11 h-11 rounded-2xl bg-purple-500/20 border border-purple-400/50 flex items-center justify-center text-purple-300 text-xl">
+                        <i class="fa-solid fa-gamepad"></i>
+                    </div>
+                    <div>
+                        <span class="text-[11px] font-bold uppercase tracking-wider text-purple-400">Salle d'Arcade 3D</span>
+                        <h3 class="font-modern text-lg sm:text-2xl font-extrabold text-white">Mini-Jeux BPM</h3>
+                    </div>
+                </div>
+                <button id="close-arcade-modal" class="w-9 h-9 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 flex items-center justify-center cursor-pointer">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <!-- Sélecteur de Mini-Jeu -->
+            <div class="px-5 pt-4 flex gap-2 border-b border-slate-800/80 pb-3 bg-slate-900/40">
+                <button id="mg-tab-rhythm" class="flex-1 py-2 px-3 rounded-xl text-xs sm:text-sm font-bold bg-purple-500/25 border border-purple-400 text-purple-200 cursor-pointer">
+                    🎼 BPM Rhythm Beat
+                </button>
+                <button id="mg-tab-simon" class="flex-1 py-2 px-3 rounded-xl text-xs sm:text-sm font-bold bg-slate-800/80 border border-slate-700 text-slate-400 hover:text-white cursor-pointer">
+                    🧠 Cyber Memory Code
+                </button>
+            </div>
+
+            <!-- MINI-JEU 1 : BPM RHYTHM BEAT -->
+            <div id="mg-panel-rhythm" class="p-5 sm:p-6 flex flex-col items-center gap-4">
+                <div class="w-full flex items-center justify-between text-xs sm:text-sm">
+                    <span class="text-slate-300">Frappe les pads (clavier D/F/J/K ou clic) quand la note atteint la ligne !</span>
+                    <span class="font-extrabold text-amber-300 bg-amber-500/15 px-3 py-1 rounded-lg border border-amber-400/30 whitespace-nowrap">
+                        Score : <span id="rhythm-score">0</span>
+                    </span>
+                </div>
+
+                <div class="relative w-full h-56 bg-slate-950/90 border border-purple-500/30 rounded-2xl overflow-hidden flex items-end justify-around pb-4 px-4" id="rhythm-track">
+                    <div class="absolute bottom-5 left-0 right-0 h-1 bg-purple-400/40 pointer-events-none"></div>
+                    <div class="rhythm-lane relative w-16 h-full flex justify-center" data-lane="0">
+                        <button class="rhythm-pad mt-auto w-14 h-14 rounded-2xl bg-sky-500/20 border-2 border-sky-400 text-sky-300 font-extrabold active:scale-90 transition-transform cursor-pointer" data-lane="0">D</button>
+                    </div>
+                    <div class="rhythm-lane relative w-16 h-full flex justify-center" data-lane="1">
+                        <button class="rhythm-pad mt-auto w-14 h-14 rounded-2xl bg-emerald-500/20 border-2 border-emerald-400 text-emerald-300 font-extrabold active:scale-90 transition-transform cursor-pointer" data-lane="1">F</button>
+                    </div>
+                    <div class="rhythm-lane relative w-16 h-full flex justify-center" data-lane="2">
+                        <button class="rhythm-pad mt-auto w-14 h-14 rounded-2xl bg-amber-500/20 border-2 border-amber-400 text-amber-300 font-extrabold active:scale-90 transition-transform cursor-pointer" data-lane="2">J</button>
+                    </div>
+                    <div class="rhythm-lane relative w-16 h-full flex justify-center" data-lane="3">
+                        <button class="rhythm-pad mt-auto w-14 h-14 rounded-2xl bg-pink-500/20 border-2 border-pink-400 text-pink-300 font-extrabold active:scale-90 transition-transform cursor-pointer" data-lane="3">K</button>
+                    </div>
+                </div>
+
+                <button id="start-rhythm-btn" class="px-6 py-2.5 rounded-xl bg-gradient-to-r from-purple-500 to-pink-600 text-white font-bold text-sm shadow-lg hover:opacity-95 cursor-pointer">
+                    <i class="fa-solid fa-play mr-1.5"></i>Lancer le Beat (+1 Pièce tous les 50 pts)
+                </button>
+            </div>
+
+            <!-- MINI-JEU 2 : CYBER MEMORY CODE -->
+            <div id="mg-panel-simon" class="hidden p-5 sm:p-6 flex flex-col items-center gap-4">
+                <div class="w-full flex items-center justify-between text-xs sm:text-sm">
+                    <span id="simon-status" class="text-slate-300">Mémorise la séquence lumineuse !</span>
+                    <span class="font-extrabold text-sky-300 bg-sky-500/15 px-3 py-1 rounded-lg border border-sky-400/30 whitespace-nowrap">
+                        Niveau : <span id="simon-level">1</span>
+                    </span>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4 my-2">
+                    <button data-pad="0" class="simon-btn w-28 h-28 sm:w-32 sm:h-32 rounded-3xl bg-emerald-600/40 border-2 border-emerald-400 transition-all cursor-pointer"></button>
+                    <button data-pad="1" class="simon-btn w-28 h-28 sm:w-32 sm:h-32 rounded-3xl bg-rose-600/40 border-2 border-rose-400 transition-all cursor-pointer"></button>
+                    <button data-pad="2" class="simon-btn w-28 h-28 sm:w-32 sm:h-32 rounded-3xl bg-amber-500/40 border-2 border-amber-400 transition-all cursor-pointer"></button>
+                    <button data-pad="3" class="simon-btn w-28 h-28 sm:w-32 sm:h-32 rounded-3xl bg-sky-600/40 border-2 border-sky-400 transition-all cursor-pointer"></button>
+                </div>
+
+                <button id="start-simon-btn" class="px-6 py-2.5 rounded-xl bg-gradient-to-r from-sky-500 to-indigo-600 text-white font-bold text-sm shadow-lg hover:opacity-95 cursor-pointer">
+                    <i class="fa-solid fa-bolt mr-1.5"></i>Démarrer la Séquence (+2 Pièces par niveau)
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        /**
+         * ============================================================================
+         * PORTFOLIO RPG 3D MULTI-MONDES - MIKY AKA BPM (BRIVAL-M)
+         * Zones :
+         *  - 'hub'     : Île Centrale (Lyra PNJ + Borne Arcade + 10 Pièces + 4 Portails)
+         *  - 'forest'  : Monde 1 - Forêt RPG (10 Mobs -> Projets OpenClassrooms)
+         *  - 'cyberlab': Monde 2 - Sanctuaire Cyber-Synth (5 Cristaux -> Projets Perso BPM)
+         *  - 'temple'  : Monde 3 - Temple Céleste (4 Braseros -> À Propos de BPM)
+         *  - 'arena'   : Monde 4 - Arène Infinie (Mobs infinis + Compteur de kills)
+         * ============================================================================
+         */
+
+        // --- 1. DONNÉES DES PROJETS (RÉSUMÉS README + GITHUB + GITHUB PAGES) ---
+        const OPENCLASSROOMS_PROJECTS = [
+            {
+                id: 'booki',
+                title: 'Booki',
+                badge: 'Projet 2 • HTML5 & CSS3',
+                summary: "Intégration responsive de la maquette d'une plateforme de réservation d'hébergements et d'activités touristiques à Marseille. Structuration sémantique HTML5 et mise en page moderne Flexbox / CSS Grid sans framework.",
+                tags: ['HTML5', 'CSS3', 'Responsive Design', 'Flexbox'],
+                githubUrl: 'https://github.com/BRIVAL-M/booki',
+                liveUrl: 'https://brival-m.github.io/booki/'
+            },
+            {
+                id: 'ohmyfood',
+                title: 'OhMyFood',
+                badge: 'Projet 3 • Animations CSS & Sass',
+                summary: "Application mobile-first de commande de repas gastronomiques en ligne permettant de composer son menu à l'avance. Animations CSS avancées (loader, apparition progressive des plats, cœur animé) et architecture Sass.",
+                tags: ['HTML5', 'Sass / SCSS', 'Animations CSS', 'Mobile-First'],
+                githubUrl: 'https://github.com/BRIVAL-M/OhMyFooD_3_22122021',
+                liveUrl: 'https://brival-m.github.io/OhMyFooD_3_22122021/'
+            },
+            {
+                id: 'p4-seo',
+                title: 'La Chouette Agence (P4)',
+                badge: 'Projet 4 • Optimisation SEO & Accessibilité',
+                summary: "Audit complet et optimisation d'un site web existant : amélioration du référencement naturel (SEO), réduction drastique du temps de chargement, compression des ressources et mise en conformité accessibilité WCAG.",
+                tags: ['SEO', 'Performance Web', 'Accessibilité', 'Lighthouse'],
+                githubUrl: 'https://github.com/BRIVAL-M/P4_02_code_source',
+                liveUrl: 'https://brival-m.github.io/P4_02_code_source/'
+            },
+            {
+                id: 'kanap',
+                title: 'Kanap',
+                badge: 'Projet 5 • JavaScript & API REST',
+                summary: "Site e-commerce dynamique développé en JavaScript Vanilla : récupération dynamique du catalogue produit via Fetch API, gestion des variantes (couleurs/quantités), panier persistant avec LocalStorage et validation de commande.",
+                tags: ['JavaScript ES6+', 'Fetch API', 'LocalStorage', 'DOM'],
+                githubUrl: 'https://github.com/BRIVAL-M/kanap',
+                liveUrl: null
+            },
+            {
+                id: 'piiquante',
+                title: 'Hot Takes — Backend Piiquante',
+                badge: 'Projet 6 • Node.js, Express & MongoDB',
+                summary: "Création d'une API REST sécurisée pour une application d'avis de sauces piquantes : authentification JWT, chiffrement des mots de passe (bcrypt), gestion CRUD des sauces, système de likes/dislikes et upload d'images (Multer).",
+                tags: ['Node.js', 'Express', 'MongoDB', 'Sécurité OWASP / JWT'],
+                githubUrl: 'https://github.com/BRIVAL-M/Backend-PiiQUANTE',
+                liveUrl: null
+            },
+            {
+                id: 'groupomania',
+                title: 'Groupomania Fullstack',
+                badge: 'Projet 7 • Réseau Social d’Entreprise',
+                summary: "Développement complet (Front-End & Back-End) d'un réseau social interne d'entreprise : création de comptes, publication de posts multimédias, commentaires, fil d'actualité interactif et rôle modérateur administrateur.",
+                tags: ['Fullstack', 'JavaScript', 'API REST', 'Base de données'],
+                githubUrl: 'https://github.com/BRIVAL-M/Groupomania-FULLSTACK',
+                liveUrl: null
+            }
+        ];
+
+        const PERSONAL_PROJECTS = [
+            {
+                id: 'bpm-audio-converter',
+                title: 'BPM-Core Audio Converter WAV2MP3',
+                badge: 'Outil Audio Web • BPM-Core',
+                summary: "Convertisseur audio rapide directement dans le navigateur permettant de transformer des fichiers WAV en MP3 haute qualité sans envoi serveur, conçu avec une interface moderne et intuitive.",
+                tags: ['JavaScript', 'Web Audio', 'Conversion WAV/MP3', 'UI Moderne'],
+                githubUrl: 'https://github.com/BRIVAL-M/BPM-Core__Audio-Converter-WAV2MP3',
+                liveUrl: 'https://brival-m.github.io/BPM-Core__Audio-Converter-WAV2MP3/'
+            },
+            {
+                id: 'base64-converter',
+                title: 'BASE64 Converter by BPM',
+                badge: 'Utilitaire Développeur • Encodage',
+                summary: "Outil web pratique permettant d'encoder et de décoder instantanément des textes, images ou fichiers en chaîne Base64 avec copie rapide en un clic pour les développeurs Front-End.",
+                tags: ['JavaScript', 'FileReader API', 'Base64', 'Outil Dev'],
+                githubUrl: 'https://github.com/BRIVAL-M/BASE64_converter-by-BPM',
+                liveUrl: 'https://brival-m.github.io/BASE64_converter-by-BPM/'
+            },
+            {
+                id: 'organisateur',
+                title: 'ORGANISATEUR',
+                badge: 'Productivité & Organisation',
+                summary: "Application web d'organisation personnelle et de gestion de tâches pensée pour structurer ses idées, planifier ses projets et booster sa productivité au quotidien.",
+                tags: ['JavaScript', 'HTML/CSS', 'Productivité', 'Responsive'],
+                githubUrl: 'https://github.com/BRIVAL-M/ORGANISATEUR',
+                liveUrl: 'https://brival-m.github.io/ORGANISATEUR/'
+            }
+        ];
+
+        const BPM_VOICE_INTRO = "Miky AKA BPM est un Développeur Web Front-End, créatif et curieux, toujours en train de coder, tester et créer ! Diplômé de la formation Développeur Web chez OpenClassrooms, il est passionné par la création d'interfaces web modernes, interactives et responsive. Ses passions sont les jeux et projets JavaScript, la créativité et le design, la musique, la vidéo, la photo et les voyages !";
+
+        // --- 2. SYSTÈME AUDIO & SYNTHÈSE VOCALE FÉMININE ---
+        class AudioVoiceManager {
+            constructor() {
+                this.enabled = true;
+                this.initialized = false;
+                this.synth = null;
+                this.femaleVoice = null;
+                this.loadVoices();
+                if ('speechSynthesis' in window) {
+                    window.speechSynthesis.onvoiceschanged = () => this.loadVoices();
+                }
+            }
+
+            loadVoices() {
+                if (!('speechSynthesis' in window)) return;
+                const voices = window.speechSynthesis.getVoices();
+                const frVoices = voices.filter(v => v.lang && v.lang.toLowerCase().startsWith('fr'));
+                this.femaleVoice =
+                    frVoices.find(v => /amelie|amélie|aurelie|aurélie|celine|céline|claire|denise|julie|lea|léa|marie|pauline|virginie|google français|female|femme/i.test(v.name)) ||
+                    frVoices[0] ||
+                    voices[0] ||
+                    null;
+            }
+
+            async initTone() {
+                if (this.initialized) return;
+                try {
+                    await Tone.start();
+                    this.synth = new Tone.PolySynth(Tone.Synth, {
+                        oscillator: { type: 'triangle' },
+                        envelope: { attack: 0.01, decay: 0.15, sustain: 0.1, release: 0.3 }
+                    }).toDestination();
+                    this.synth.volume.value = -10;
+                    this.initialized = true;
+                } catch (e) {}
+            }
+
+            playCoin() {
+                if (!this.enabled || !this.initialized) return;
+                const now = Tone.now();
+                this.synth.triggerAttackRelease('B5', '16n', now);
+                this.synth.triggerAttackRelease('E6', '8n', now + 0.07);
+            }
+
+            playSword() {
+                if (!this.enabled || !this.initialized) return;
+                this.synth.triggerAttackRelease(['C3', 'G3'], '16n');
+            }
+
+            playHitMob() {
+                if (!this.enabled || !this.initialized) return;
+                const now = Tone.now();
+                this.synth.triggerAttackRelease('A4', '16n', now);
+                this.synth.triggerAttackRelease('D5', '16n', now + 0.06);
+            }
+
+            playPortal() {
+                if (!this.enabled || !this.initialized) return;
+                const now = Tone.now();
+                ['C4', 'E4', 'G4', 'B4', 'C5'].forEach((n, i) => {
+                    this.synth.triggerAttackRelease(n, '16n', now + i * 0.05);
+                });
+            }
+
+            playFanfare() {
+                if (!this.enabled || !this.initialized) return;
+                const now = Tone.now();
+                ['C4', 'E4', 'G4', 'C5', 'E5'].forEach((n, i) => {
+                    this.synth.triggerAttackRelease(n, '8n', now + i * 0.09);
+                });
+            }
+
+            speak(text) {
+                if (!this.enabled || !('speechSynthesis' in window)) return;
+                try {
+                    window.speechSynthesis.cancel();
+                    const utterance = new SpeechSynthesisUtterance(text);
+                    utterance.lang = 'fr-FR';
+                    if (this.femaleVoice) utterance.voice = this.femaleVoice;
+                    utterance.pitch = 1.15;
+                    utterance.rate = 1.03;
+
+                    const badge = document.getElementById('voice-speaking-badge');
+                    utterance.onstart = () => {
+                        if (badge) { badge.classList.remove('hidden'); badge.classList.add('inline-flex'); }
+                    };
+                    utterance.onend = () => {
+                        if (badge) { badge.classList.add('hidden'); badge.classList.remove('inline-flex'); }
+                    };
+                    window.speechSynthesis.speak(utterance);
+                } catch (e) {}
+            }
+
+            stopSpeech() {
+                if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+            }
+        }
+
+        const audio = new AudioVoiceManager();
+
+        // --- 3. ÉTAT GLOBAL DU JEU ---
+        const GameState = {
+            currentZone: 'hub', // 'hub' | 'forest' | 'cyberlab' | 'temple' | 'arena'
+            coins: 0,
+            isPlaying: false,
+            isModalOpen: false,
+            // Progression des mondes
+            forestMobsDefeated: 0,
+            forestUnlocked: false,
+            cyberCrystalsActivated: 0,
+            cyberUnlocked: false,
+            templeBraziersLit: 0,
+            templeUnlocked: false,
+            // Arène Infinie
+            arenaKills: 0,
+            // Interaction proche actuelle
+            nearestInteractable: null
+        };
+
+        // --- 4. MOTEUR 3D THREE.JS & OBJETS DES MONDES ---
+        let scene, camera, renderer, clock;
+        let worldGroup;
+        let playerGroup, leftLeg, rightLeg, leftArm, rightArm, swordMesh, capeMesh;
+        let targetMarker;
+
+        let hubCoins = [];
+        let hubPortals = [];
+        let lyraNpc = null;
+        let arcadeCabinet = null;
+        let forestMobs = [];
+        let arenaMobs = [];
+        let arenaSpawnTimer = 0;
+        let cyberCrystals = [];
+        let templeBraziers = [];
+        let returnPortal = null;
+        let floatingParticles = null;
+
+        const playerState = {
+            position: new THREE.Vector3(0, 0, 10),
+            rotationY: Math.PI,
+            speed: 10.5,
+            walkCycle: 0,
+            attackTimer: 0,
+            clickTarget: null
+        };
+
+        const keys = { w: false, a: false, s: false, d: false, up: false, down: false, left: false, right: false };
+        const joystickInput = { x: 0, y: 0, active: false };
+        let cameraAngle = 0;
+        let isDraggingCamera = false;
+        let prevPointerX = 0;
+
+        function initThree() {
+            const container = document.getElementById('canvas-container');
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x0b162c);
+            scene.fog = new THREE.FogExp2(0x0b162c, 0.012);
+
+            camera = new THREE.PerspectiveCamera(54, window.innerWidth / window.innerHeight, 0.1, 300);
+            renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            renderer.shadowMap.enabled = true;
+            renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+            container.appendChild(renderer.domElement);
+
+            clock = new THREE.Clock();
+
+            // Éclairage
+            const hemiLight = new THREE.HemisphereLight(0x93c5fd, 0x0f172a, 0.9);
+            scene.add(hemiLight);
+
+            const dirLight = new THREE.DirectionalLight(0xfffbeb, 1.25);
+            dirLight.position.set(22, 38, 24);
+            dirLight.castShadow = true;
+            dirLight.shadow.mapSize.width = 2048;
+            dirLight.shadow.mapSize.height = 2048;
+            dirLight.shadow.camera.near = 2;
+            dirLight.shadow.camera.far = 110;
+            const d = 38;
+            dirLight.shadow.camera.left = -d;
+            dirLight.shadow.camera.right = d;
+            dirLight.shadow.camera.top = d;
+            dirLight.shadow.camera.bottom = -d;
+            scene.add(dirLight);
+
+            worldGroup = new THREE.Group();
+            scene.add(worldGroup);
+
+            createHeroCharacter();
+
+            const markerGeo = new THREE.RingGeometry(0.45, 0.65, 24);
+            const markerMat = new THREE.MeshBasicMaterial({ color: 0x38bdf8, side: THREE.DoubleSide, transparent: true, opacity: 0.85 });
+            targetMarker = new THREE.Mesh(markerGeo, markerMat);
+            targetMarker.rotation.x = -Math.PI / 2;
+            targetMarker.position.y = 0.05;
+            targetMarker.visible = false;
+            scene.add(targetMarker);
+
+            loadZone('hub');
+
+            window.addEventListener('resize', onWindowResize);
+            setupControls();
+        }
+
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+
+        // --- CRÉATION DU HÉROS 3D ---
+        function createHeroCharacter() {
+            playerGroup = new THREE.Group();
+            playerGroup.position.copy(playerState.position);
+
+            const armorMat = new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.4, metalness: 0.5 });
+            const accentMat = new THREE.MeshStandardMaterial({ color: 0x38bdf8, emissive: 0x0284c7, emissiveIntensity: 0.4 });
+            const skinMat = new THREE.MeshStandardMaterial({ color: 0xfcd34d, roughness: 0.6 });
+            const capeMat = new THREE.MeshStandardMaterial({ color: 0x4f46e5, side: THREE.DoubleSide });
+
+            const torso = new THREE.Mesh(new THREE.BoxGeometry(0.85, 1.05, 0.5), armorMat);
+            torso.position.y = 1.25;
+            torso.castShadow = true;
+            playerGroup.add(torso);
+
+            const chestCore = new THREE.Mesh(new THREE.BoxGeometry(0.32, 0.32, 0.54), accentMat);
+            chestCore.position.y = 1.32;
+            playerGroup.add(chestCore);
+
+            const head = new THREE.Mesh(new THREE.BoxGeometry(0.68, 0.68, 0.68), skinMat);
+            head.position.y = 2.15;
+            head.castShadow = true;
+            playerGroup.add(head);
+
+            const visor = new THREE.Mesh(new THREE.BoxGeometry(0.72, 0.18, 0.72), accentMat);
+            visor.position.y = 2.24;
+            playerGroup.add(visor);
+
+            capeMesh = new THREE.Mesh(new THREE.BoxGeometry(0.75, 1.15, 0.08), capeMat);
+            capeMesh.position.set(0, 1.2, -0.32);
+            capeMesh.rotation.x = 0.15;
+            playerGroup.add(capeMesh);
+
+            leftLeg = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.75, 0.32), armorMat);
+            leftLeg.position.set(-0.22, 0.38, 0);
+            leftLeg.castShadow = true;
+            playerGroup.add(leftLeg);
+
+            rightLeg = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.75, 0.32), armorMat);
+            rightLeg.position.set(0.22, 0.38, 0);
+            rightLeg.castShadow = true;
+            playerGroup.add(rightLeg);
+
+            leftArm = new THREE.Mesh(new THREE.BoxGeometry(0.26, 0.75, 0.28), armorMat);
+            leftArm.position.set(-0.6, 1.25, 0);
+            playerGroup.add(leftArm);
+
+            rightArm = new THREE.Mesh(new THREE.BoxGeometry(0.26, 0.75, 0.28), armorMat);
+            rightArm.position.set(0.6, 1.25, 0);
+            playerGroup.add(rightArm);
+
+            const swordGroup = new THREE.Group();
+            const blade = new THREE.Mesh(
+                new THREE.BoxGeometry(0.12, 1.35, 0.04),
+                new THREE.MeshStandardMaterial({ color: 0xe0f2fe, emissive: 0x38bdf8, emissiveIntensity: 0.75, metalness: 0.8 })
+            );
+            blade.position.set(0, 0.55, 0.35);
+            blade.rotation.x = Math.PI / 3;
+            swordGroup.add(blade);
+            swordMesh = swordGroup;
+            rightArm.add(swordGroup);
+
+            scene.add(playerGroup);
+        }
+
+        // --- OUTIL DE CRÉATION DE PANNEAUX TEXTE 3D ---
+        function createLabelSprite(title, subtitle, borderColor = '#38bdf8') {
+            const canvas = document.createElement('canvas');
+            canvas.width = 512;
+            canvas.height = 140;
+            const ctx = canvas.getContext('2d');
+
+            ctx.fillStyle = 'rgba(10, 16, 30, 0.88)';
+            ctx.beginPath();
+            ctx.roundRect(12, 12, 488, 116, 26);
+            ctx.fill();
+
+            ctx.lineWidth = 4;
+            ctx.strokeStyle = borderColor;
+            ctx.stroke();
+
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 28px Plus Jakarta Sans, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText(title, 256, 62);
+
+            ctx.fillStyle = borderColor;
+            ctx.font = 'bold 21px Inter, sans-serif';
+            ctx.fillText(subtitle, 256, 102);
+
+            const tex = new THREE.CanvasTexture(canvas);
+            const mat = new THREE.SpriteMaterial({ map: tex, transparent: true });
+            const sprite = new THREE.Sprite(mat);
+            sprite.scale.set(5.4, 1.5, 1);
+            return sprite;
+        }
+
+        // --- CONSTRUCTION D'UN PORTAIL DIMENSIONNEL 3D ---
+        function buildPortalMesh(x, z, colorHex, title, subtitle, badgeColor) {
+            const group = new THREE.Group();
+            group.position.set(x, 0, z);
+
+            const pillarMat = new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.4, metalness: 0.6 });
+            const leftPillar = new THREE.Mesh(new THREE.BoxGeometry(0.65, 4.4, 0.8), pillarMat);
+            leftPillar.position.set(-1.7, 2.2, 0);
+            leftPillar.castShadow = true;
+            group.add(leftPillar);
+
+            const rightPillar = new THREE.Mesh(new THREE.BoxGeometry(0.65, 4.4, 0.8), pillarMat);
+            rightPillar.position.set(1.7, 2.2, 0);
+            rightPillar.castShadow = true;
+            group.add(rightPillar);
+
+            const topArch = new THREE.Mesh(new THREE.BoxGeometry(4.3, 0.65, 0.9), pillarMat);
+            topArch.position.set(0, 4.5, 0);
+            topArch.castShadow = true;
+            group.add(topArch);
+
+            const vortexMat = new THREE.MeshBasicMaterial({
+                color: colorHex,
+                transparent: true,
+                opacity: 0.78,
+                side: THREE.DoubleSide
+            });
+            const vortex = new THREE.Mesh(new THREE.PlaneGeometry(2.8, 4.0), vortexMat);
+            vortex.position.set(0, 2.2, 0);
+            group.add(vortex);
+
+            const baseRing = new THREE.Mesh(
+                new THREE.RingGeometry(2.1, 2.5, 32),
+                new THREE.MeshBasicMaterial({ color: colorHex, side: THREE.DoubleSide })
+            );
+            baseRing.rotation.x = -Math.PI / 2;
+            baseRing.position.y = 0.04;
+            group.add(baseRing);
+
+            const label = createLabelSprite(title, subtitle, badgeColor);
+            label.position.set(0, 5.7, 0);
+            group.add(label);
+
+            worldGroup.add(group);
+            return { group, vortex, label, position: new THREE.Vector3(x, 0, z) };
+        }
+
+        // --- CHARGEMENT DES DIFFÉRENTS MONDES ---
+        function clearWorldGroup() {
+            while (worldGroup.children.length > 0) {
+                worldGroup.remove(worldGroup.children[0]);
+            }
+            hubCoins = [];
+            hubPortals = [];
+            lyraNpc = null;
+            arcadeCabinet = null;
+            forestMobs = [];
+            arenaMobs = [];
+            cyberCrystals = [];
+            templeBraziers = [];
+            returnPortal = null;
+            floatingParticles = null;
+            playerState.clickTarget = null;
+            targetMarker.visible = false;
+        }
+
+        function loadZone(zoneName) {
+            GameState.currentZone = zoneName;
+            clearWorldGroup();
+
+            playerState.position.set(0, 0, 12);
+            playerState.rotationY = Math.PI;
+            playerGroup.position.copy(playerState.position);
+
+            if (zoneName === 'hub') buildHubZone();
+            else if (zoneName === 'forest') buildForestZone();
+            else if (zoneName === 'cyberlab') buildCyberLabZone();
+            else if (zoneName === 'temple') buildTempleZone();
+            else if (zoneName === 'arena') buildArenaZone();
+
+            updateHUDForZone();
+        }
+
+        // MONDE 0 : L'ARCHIPEL CENTRAL
+        function buildHubZone() {
+            scene.background = new THREE.Color(0x0b162c);
+            scene.fog = new THREE.FogExp2(0x0b162c, 0.011);
+
+            const islandGeo = new THREE.CylinderGeometry(33, 24, 6, 48);
+            const islandMat = new THREE.MeshStandardMaterial({ color: 0x164e3f, roughness: 0.85 });
+            const island = new THREE.Mesh(islandGeo, islandMat);
+            island.position.y = -3;
+            island.receiveShadow = true;
+            worldGroup.add(island);
+
+            const plaza = new THREE.Mesh(
+                new THREE.CylinderGeometry(11, 11.5, 0.18, 36),
+                new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.6 })
+            );
+            plaza.position.y = 0.05;
+            plaza.receiveShadow = true;
+            worldGroup.add(plaza);
+
+            // Rochers décoratifs
+            const rockMat = new THREE.MeshStandardMaterial({ color: 0x475569, roughness: 0.9 });
+            [[-24, 10], [25, 8], [-15, 22], [17, 20]].forEach(([rx, rz]) => {
+                const rock = new THREE.Mesh(new THREE.DodecahedronGeometry(1.6, 0), rockMat);
+                rock.position.set(rx, 0.9, rz);
+                rock.castShadow = true;
+                worldGroup.add(rock);
+            });
+
+            // 1A. PNJ FÉMININ "LYRA"
+            const npcGroup = new THREE.Group();
+            npcGroup.position.set(0, 0, 2.5);
+
+            const dress = new THREE.Mesh(
+                new THREE.ConeGeometry(0.65, 1.65, 16),
+                new THREE.MeshStandardMaterial({ color: 0xec4899, emissive: 0x9d174d, emissiveIntensity: 0.35 })
+            );
+            dress.position.y = 0.85;
+            dress.castShadow = true;
+            npcGroup.add(dress);
+
+            const npcHead = new THREE.Mesh(
+                new THREE.SphereGeometry(0.38, 16, 16),
+                new THREE.MeshStandardMaterial({ color: 0xfde68a })
+            );
+            npcHead.position.y = 1.95;
+            npcGroup.add(npcHead);
+
+            const halo = new THREE.Mesh(
+                new THREE.TorusGeometry(0.35, 0.05, 12, 24),
+                new THREE.MeshBasicMaterial({ color: 0xf472b6 })
+            );
+            halo.rotation.x = Math.PI / 2;
+            halo.position.y = 2.5;
+            npcGroup.add(halo);
+
+            const npcLabel = createLabelSprite("Lyra (Guide)", "Parle-moi ! [E]", "#f472b6");
+            npcLabel.position.set(0, 3.2, 0);
+            npcGroup.add(npcLabel);
+
+            worldGroup.add(npcGroup);
+            lyraNpc = { group: npcGroup, position: new THREE.Vector3(0, 0, 2.5) };
+
+            // 1B. BORNE D'ARCADE 3D "BPM MINI-JEUX"
+            const arcGroup = new THREE.Group();
+            arcGroup.position.set(-7.5, 0, 1.5);
+            arcGroup.rotation.y = 0.5;
+
+            const cabBody = new THREE.Mesh(
+                new THREE.BoxGeometry(1.5, 2.6, 1.3),
+                new THREE.MeshStandardMaterial({ color: 0x1e1b4b, metalness: 0.5, roughness: 0.3 })
+            );
+            cabBody.position.y = 1.3;
+            cabBody.castShadow = true;
+            arcGroup.add(cabBody);
+
+            const cabScreen = new THREE.Mesh(
+                new THREE.PlaneGeometry(1.15, 0.9),
+                new THREE.MeshBasicMaterial({ color: 0xc084fc })
+            );
+            cabScreen.position.set(0, 1.85, 0.67);
+            cabScreen.rotation.x = -0.22;
+            arcGroup.add(cabScreen);
+
+            const arcLabel = createLabelSprite("🕹️ Borne Arcade BPM", "Jouer aux Mini-Jeux [E]", "#c084fc");
+            arcLabel.position.set(0, 3.5, 0);
+            arcGroup.add(arcLabel);
+
+            worldGroup.add(arcGroup);
+            arcadeCabinet = { group: arcGroup, position: new THREE.Vector3(-7.5, 0, 1.5) };
+
+            // 2. LES 4 PORTAILS
+            const p1Open = GameState.coins >= 10 || GameState.forestUnlocked;
+            const p2Open = GameState.coins >= 20 || GameState.cyberUnlocked;
+            const p3Open = GameState.coins >= 30 || GameState.templeUnlocked;
+
+            const portal1 = buildPortalMesh(
+                -19, -12,
+                p1Open ? 0x10b981 : 0x475569,
+                "1. Formation OpenClassrooms",
+                p1Open ? "✓ OUVERT • Entrer dans la Forêt" : "🔒 Requiert 10 Pièces d'Or",
+                p1Open ? "#34d399" : "#94a3b8"
+            );
+            portal1.group.rotation.y = 0.75;
+            hubPortals.push({ id: 'forest', requiredCoins: 10, ...portal1 });
+
+            const portal2 = buildPortalMesh(
+                -6.5, -22,
+                p2Open ? 0x38bdf8 : 0x475569,
+                "2. Projets Perso BPM",
+                p2Open ? "✓ OUVERT • Entrer au Cyber-Lab" : "🔒 Requiert 20 Pièces (ou Lyra)",
+                p2Open ? "#38bdf8" : "#94a3b8"
+            );
+            portal2.group.rotation.y = 0.25;
+            hubPortals.push({ id: 'cyberlab', requiredCoins: 20, ...portal2 });
+
+            const portal3 = buildPortalMesh(
+                6.5, -22,
+                p3Open ? 0xfacc15 : 0x475569,
+                "3. À Propos de Miky AKA BPM",
+                p3Open ? "✓ OUVERT • Temple des Passions" : "🔒 Requiert 30 Pièces (ou Lyra)",
+                p3Open ? "#facc15" : "#94a3b8"
+            );
+            portal3.group.rotation.y = -0.25;
+            hubPortals.push({ id: 'temple', requiredCoins: 30, ...portal3 });
+
+            const portal4 = buildPortalMesh(
+                19, -12,
+                0xf43f5e,
+                "4. Arène de Combat Infinie",
+                `⚔️ OUVERT • Record : ${GameState.arenaKills} Mobs`,
+                "#fb7185"
+            );
+            portal4.group.rotation.y = -0.75;
+            hubPortals.push({ id: 'arena', requiredCoins: 0, ...portal4 });
+
+            // 3. LES 10 PIÈCES D'OR
+            spawnHubCoins();
+            addAmbientParticles(0x7dd3fc);
+        }
+
+        function spawnHubCoins() {
+            hubCoins.forEach(c => worldGroup.remove(c.mesh));
+            hubCoins = [];
+
+            const positions = [
+                [-8, 8], [8, 8], [-14, 2], [14, 2],
+                [-12, -8], [12, -8], [0, -11], [-5, 16],
+                [5, 16], [0, 21]
+            ];
+
+            const coinGeo = new THREE.CylinderGeometry(0.55, 0.55, 0.16, 20);
+            const coinMat = new THREE.MeshStandardMaterial({
+                color: 0xfacc15,
+                emissive: 0xd97706,
+                emissiveIntensity: 0.45,
+                metalness: 0.85,
+                roughness: 0.2
+            });
+
+            positions.forEach(([cx, cz]) => {
+                const coin = new THREE.Mesh(coinGeo, coinMat);
+                coin.rotation.z = Math.PI / 2;
+                coin.position.set(cx, 1.0, cz);
+                coin.castShadow = true;
+                worldGroup.add(coin);
+                hubCoins.push({ mesh: coin, collected: false });
+            });
+        }
+
+        // MONDE 1 : FORÊT RPG (10 MOBS -> PROJETS OPENCLASSROOMS)
+        function buildForestZone() {
+            scene.background = new THREE.Color(0x062018);
+            scene.fog = new THREE.FogExp2(0x062018, 0.015);
+
+            const ground = new THREE.Mesh(
+                new THREE.CylinderGeometry(38, 30, 6, 48),
+                new THREE.MeshStandardMaterial({ color: 0x0f3d2e, roughness: 0.9 })
+            );
+            ground.position.y = -3;
+            ground.receiveShadow = true;
+            worldGroup.add(ground);
+
+            // Arbres de la forêt
+            const trunkMat = new THREE.MeshStandardMaterial({ color: 0x451a03 });
+            const leavesMat = new THREE.MeshStandardMaterial({ color: 0x059669, roughness: 0.8 });
+            for (let i = 0; i < 26; i++) {
+                const angle = (i / 26) * Math.PI * 2;
+                const radius = 16 + (i % 3) * 6;
+                const tx = Math.cos(angle) * radius;
+                const tz = Math.sin(angle) * radius - 4;
+
+                const tree = new THREE.Group();
+                tree.position.set(tx, 0, tz);
+                const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.35, 0.5, 2.2, 8), trunkMat);
+                trunk.position.y = 1.1;
+                tree.add(trunk);
+
+                const crown = new THREE.Mesh(new THREE.ConeGeometry(1.8, 4.2, 8), leavesMat);
+                crown.position.y = 3.8;
+                crown.castShadow = true;
+                tree.add(crown);
+                worldGroup.add(tree);
+            }
+
+            returnPortal = buildPortalMesh(0, 22, 0x38bdf8, "Portail de Retour", "Revenir à l'Archipel [E]", "#38bdf8");
+
+            // 10 Mobs de la forêt
+            const mobCoords = [
+                [-10, 4], [10, 4], [-14, -4], [14, -4], [-7, -11],
+                [7, -11], [0, -16], [-18, -12], [18, -12], [0, -5]
+            ];
+
+            mobCoords.forEach(([mx, mz], idx) => {
+                const mobGroup = new THREE.Group();
+                mobGroup.position.set(mx, 0, mz);
+
+                const body = new THREE.Mesh(
+                    new THREE.SphereGeometry(0.95, 14, 14),
+                    new THREE.MeshStandardMaterial({ color: 0xef4444, emissive: 0x991b1b, emissiveIntensity: 0.4 })
+                );
+                body.position.y = 0.95;
+                body.castShadow = true;
+                mobGroup.add(body);
+
+                const eyeMat = new THREE.MeshBasicMaterial({ color: 0xfef08a });
+                const e1 = new THREE.Mesh(new THREE.SphereGeometry(0.14, 8, 8), eyeMat);
+                e1.position.set(-0.3, 1.15, 0.82);
+                const e2 = e1.clone();
+                e2.position.x = 0.3;
+                mobGroup.add(e1, e2);
+
+                worldGroup.add(mobGroup);
+                forestMobs.push({
+                    id: idx,
+                    group: mobGroup,
+                    body,
+                    basePos: new THREE.Vector3(mx, 0, mz),
+                    phase: idx * 0.9,
+                    alive: true
+                });
+            });
+
+            addAmbientParticles(0x34d399);
+        }
+
+        // MONDE 2 : CYBER-LAB (5 CRISTAUX -> PROJETS PERSO BPM)
+        function buildCyberLabZone() {
+            scene.background = new THREE.Color(0x071326);
+            scene.fog = new THREE.FogExp2(0x071326, 0.014);
+
+            const ground = new THREE.Mesh(
+                new THREE.CylinderGeometry(35, 28, 6, 48),
+                new THREE.MeshStandardMaterial({ color: 0x0f172a, metalness: 0.4, roughness: 0.5 })
+            );
+            ground.position.y = -3;
+            ground.receiveShadow = true;
+            worldGroup.add(ground);
+
+            returnPortal = buildPortalMesh(0, 22, 0xfacc15, "Portail de Retour", "Revenir à l'Archipel [E]", "#facc15");
+
+            const crystalCoords = [[-13, 3], [13, 3], [-10, -10], [10, -10], [0, -16]];
+            crystalCoords.forEach(([cx, cz], idx) => {
+                const cGroup = new THREE.Group();
+                cGroup.position.set(cx, 0, cz);
+
+                const crystal = new THREE.Mesh(
+                    new THREE.OctahedronGeometry(1.1, 0),
+                    new THREE.MeshStandardMaterial({ color: 0x38bdf8, emissive: 0x0284c7, emissiveIntensity: 0.4 })
+                );
+                crystal.position.y = 1.6;
+                cGroup.add(crystal);
+
+                const label = createLabelSprite(`Cristal BPM #${idx + 1}`, "Synchroniser [E]", "#38bdf8");
+                label.position.set(0, 3.3, 0);
+                cGroup.add(label);
+
+                worldGroup.add(cGroup);
+                cyberCrystals.push({
+                    group: cGroup,
+                    crystal,
+                    label,
+                    position: new THREE.Vector3(cx, 0, cz),
+                    activated: false
+                });
+            });
+
+            addAmbientParticles(0x38bdf8);
+        }
+
+        // MONDE 3 : TEMPLE CÉLESTE (4 BRASEROS -> À PROPOS DE BPM)
+        function buildTempleZone() {
+            scene.background = new THREE.Color(0x1a1329);
+            scene.fog = new THREE.FogExp2(0x1a1329, 0.014);
+
+            const ground = new THREE.Mesh(
+                new THREE.CylinderGeometry(34, 26, 6, 48),
+                new THREE.MeshStandardMaterial({ color: 0x271e3d, roughness: 0.7 })
+            );
+            ground.position.y = -3;
+            ground.receiveShadow = true;
+            worldGroup.add(ground);
+
+            returnPortal = buildPortalMesh(0, 22, 0x38bdf8, "Portail de Retour", "Revenir à l'Archipel [E]", "#38bdf8");
+
+            const themes = [
+                { pos: [-11, 2], title: "💻 Code & Front-End", sub: "Allumer [E]" },
+                { pos: [11, 2], title: "🎨 Créativité & Design", sub: "Allumer [E]" },
+                { pos: [-9, -11], title: "🎼 Musique, Vidéo & Photo", sub: "Allumer [E]" },
+                { pos: [9, -11], title: "🌍 Voyages & Curiosité", sub: "Allumer [E]" }
+            ];
+
+            themes.forEach(item => {
+                const bGroup = new THREE.Group();
+                bGroup.position.set(item.pos[0], 0, item.pos[1]);
+
+                const bowl = new THREE.Mesh(
+                    new THREE.CylinderGeometry(1.1, 0.7, 1.2, 16),
+                    new THREE.MeshStandardMaterial({ color: 0x334155, metalness: 0.6 })
+                );
+                bowl.position.y = 0.6;
+                bGroup.add(bowl);
+
+                const flame = new THREE.Mesh(
+                    new THREE.ConeGeometry(0.65, 1.4, 12),
+                    new THREE.MeshBasicMaterial({ color: 0xfacc15 })
+                );
+                flame.position.y = 1.75;
+                flame.visible = false;
+                bGroup.add(flame);
+
+                const flameLight = new THREE.PointLight(0xf59e0b, 0, 10);
+                flameLight.position.y = 2.2;
+                bGroup.add(flameLight);
+
+                const label = createLabelSprite(item.title, item.sub, "#facc15");
+                label.position.set(0, 3.1, 0);
+                bGroup.add(label);
+
+                worldGroup.add(bGroup);
+                templeBraziers.push({
+                    group: bGroup,
+                    flame,
+                    flameLight,
+                    label,
+                    title: item.title,
+                    position: new THREE.Vector3(item.pos[0], 0, item.pos[1]),
+                    lit: false
+                });
+            });
+
+            addAmbientParticles(0xfacc15);
+        }
+
+        // MONDE 4 : ARÈNE INFINIE (MOBS À L'INFINI + COMPTEUR DE KILLS)
+        function buildArenaZone() {
+            scene.background = new THREE.Color(0x1f0912);
+            scene.fog = new THREE.FogExp2(0x1f0912, 0.014);
+
+            const ground = new THREE.Mesh(
+                new THREE.CylinderGeometry(38, 30, 6, 48),
+                new THREE.MeshStandardMaterial({ color: 0x2a1019, roughness: 0.8 })
+            );
+            ground.position.y = -3;
+            ground.receiveShadow = true;
+            worldGroup.add(ground);
+
+            const arenaRing = new THREE.Mesh(
+                new THREE.RingGeometry(18, 19, 48),
+                new THREE.MeshBasicMaterial({ color: 0xf43f5e, side: THREE.DoubleSide, transparent: true, opacity: 0.6 })
+            );
+            arenaRing.rotation.x = -Math.PI / 2;
+            arenaRing.position.y = 0.04;
+            worldGroup.add(arenaRing);
+
+            returnPortal = buildPortalMesh(0, 22, 0x38bdf8, "Portail de Retour", "Revenir à l'Archipel [E]", "#38bdf8");
+
+            for (let i = 0; i < 8; i++) {
+                spawnSingleArenaMob();
+            }
+
+            addAmbientParticles(0xfb7185);
+        }
+
+        function spawnSingleArenaMob() {
+            const angle = Math.random() * Math.PI * 2;
+            const dist = 10 + Math.random() * 14;
+            const mx = Math.cos(angle) * dist;
+            const mz = Math.sin(angle) * dist - 2;
+
+            const isElite = Math.random() > 0.75;
+            const mobGroup = new THREE.Group();
+            mobGroup.position.set(mx, 0, mz);
+
+            const body = new THREE.Mesh(
+                new THREE.OctahedronGeometry(isElite ? 1.25 : 0.9, 0),
+                new THREE.MeshStandardMaterial({
+                    color: isElite ? 0xa855f7 : 0xf43f5e,
+                    emissive: isElite ? 0x6b21a8 : 0x9f1239,
+                    emissiveIntensity: 0.55
+                })
+            );
+            body.position.y = isElite ? 1.2 : 0.9;
+            body.castShadow = true;
+            mobGroup.add(body);
+
+            worldGroup.add(mobGroup);
+            arenaMobs.push({
+                group: mobGroup,
+                body,
+                speed: isElite ? 3.2 : 2.3,
+                phase: Math.random() * Math.PI * 2,
+                isElite,
+                alive: true
+            });
+        }
+
+        function addAmbientParticles(colorHex) {
+            const count = 90;
+            const positions = new Float32Array(count * 3);
+            for (let i = 0; i < count * 3; i += 3) {
+                positions[i] = (Math.random() - 0.5) * 65;
+                positions[i + 1] = 0.5 + Math.random() * 14;
+                positions[i + 2] = (Math.random() - 0.5) * 65;
+            }
+            const geo = new THREE.BufferGeometry();
+            geo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+            const mat = new THREE.PointsMaterial({ color: colorHex, size: 0.25, transparent: true, opacity: 0.75 });
+            floatingParticles = new THREE.Points(geo, mat);
+            worldGroup.add(floatingParticles);
+        }
+
+        // --- 5. COMBAT & INTERACTIONS ---
+        function performSwordAttack() {
+            if (GameState.isModalOpen || !GameState.isPlaying) return;
+            playerState.attackTimer = 0.35;
+            audio.playSword();
+
+            if (GameState.currentZone === 'forest') {
+                let hitCount = 0;
+                forestMobs.forEach(mob => {
+                    if (!mob.alive) return;
+                    if (playerState.position.distanceTo(mob.group.position) < 4.5) {
+                        mob.alive = false;
+                        worldGroup.remove(mob.group);
+                        GameState.forestMobsDefeated++;
+                        hitCount++;
+                        spawnFloatingPopup("⚔️ Mob Vaincu !", "#34d399");
+                    }
+                });
+
+                if (hitCount > 0) {
+                    audio.playHitMob();
+                    updateHUDForZone();
+                    if (GameState.forestMobsDefeated >= 10 && !GameState.forestUnlocked) {
+                        GameState.forestUnlocked = true;
+                        audio.playFanfare();
+                        audio.speak("Incroyable ! Tu as vaincu les 10 créatures de la forêt ! Les 6 projets de la formation OpenClassrooms de Miky sont maintenant débloqués !");
+                        setTimeout(() => openProjectsModal('oc'), 800);
+                    }
+                }
+            } else if (GameState.currentZone === 'arena') {
+                let hitCount = 0;
+                arenaMobs.forEach(mob => {
+                    if (!mob.alive) return;
+                    if (playerState.position.distanceTo(mob.group.position) < 4.5) {
+                        mob.alive = false;
+                        worldGroup.remove(mob.group);
+                        GameState.arenaKills++;
+                        hitCount++;
+                        spawnFloatingPopup(mob.isElite ? "🔥 Élite Vaincu ! +1" : "⚔️ +1 Kill !", "#fb7185");
+                    }
+                });
+
+                if (hitCount > 0) {
+                    audio.playHitMob();
+                    updateHUDForZone();
+                    if (GameState.arenaKills % 5 === 0) {
+                        GameState.coins++;
+                        audio.playCoin();
+                        spawnFloatingPopup("🪙 Bonus Arène : +1 Pièce !", "#facc15");
+                        updateHUDForZone();
+                    }
+                }
+            }
+        }
+
+        function triggerInteraction() {
+            const target = GameState.nearestInteractable;
+            if (!target) return;
+
+            if (target.type === 'lyra') {
+                openLyraDialogue('welcome');
+            } else if (target.type === 'arcade') {
+                openArcadeModal();
+            } else if (target.type === 'portal') {
+                const p = target.data;
+                if (GameState.coins < p.requiredCoins) {
+                    const missing = p.requiredCoins - GameState.coins;
+                    openLyraDialogue('locked', `Ce portail demande ${p.requiredCoins} pièces d'or ! Il t'en manque ${missing}. Tu peux me demander d'en faire apparaître d'autres sur l'île !`);
+                    return;
+                }
+                audio.playPortal();
+                loadZone(p.id);
+                if (p.id === 'forest') {
+                    audio.speak("Bienvenue dans la forêt RPG ! Élimine les 10 créatures avec ton épée pour révéler les projets OpenClassrooms de Miky !");
+                } else if (p.id === 'cyberlab') {
+                    audio.speak("Te voici au Cyber-Lab ! Active les 5 cristaux d'énergie pour découvrir les projets personnels de BPM !");
+                } else if (p.id === 'temple') {
+                    audio.speak("Bienvenue au Temple Céleste ! Allume les 4 braseros des passions pour découvrir qui est Miky AKA BPM !");
+                } else if (p.id === 'arena') {
+                    audio.speak("Attention ! Bienvenue dans l'Arène de Combat Infinie ! Élimine un maximum de monstres pour faire grimper ton score !");
+                }
+            } else if (target.type === 'return') {
+                audio.playPortal();
+                loadZone('hub');
+            } else if (target.type === 'crystal') {
+                const c = target.data;
+                if (!c.activated) {
+                    c.activated = true;
+                    c.crystal.material.color.setHex(0x10b981);
+                    c.crystal.material.emissive.setHex(0x059669);
+                    c.crystal.material.emissiveIntensity = 0.95;
+                    GameState.cyberCrystalsActivated++;
+                    audio.playCoin();
+                    spawnFloatingPopup(`💎 Cristal ${GameState.cyberCrystalsActivated}/5 !`, "#38bdf8");
+                    updateHUDForZone();
+
+                    if (GameState.cyberCrystalsActivated >= 5 && !GameState.cyberUnlocked) {
+                        GameState.cyberUnlocked = true;
+                        audio.playFanfare();
+                        audio.speak("Bravo ! Les 5 cristaux sont synchronisés ! Voici les projets personnels créés par BPM !");
+                        setTimeout(() => openProjectsModal('perso'), 750);
+                    }
+                }
+            } else if (target.type === 'brazier') {
+                const b = target.data;
+                if (!b.lit) {
+                    b.lit = true;
+                    b.flame.visible = true;
+                    if (b.flameLight) b.flameLight.intensity = 2.2;
+                    GameState.templeBraziersLit++;
+                    audio.playCoin();
+                    spawnFloatingPopup(`🔥 ${b.title}`, "#facc15");
+                    updateHUDForZone();
+
+                    if (GameState.templeBraziersLit >= 4 && !GameState.templeUnlocked) {
+                        GameState.templeUnlocked = true;
+                        audio.playFanfare();
+                        setTimeout(() => openBpmModal(true), 700);
+                    }
+                }
+            }
+        }
+
+        function spawnFloatingPopup(text, color = '#facc15') {
+            const el = document.createElement('div');
+            el.className = 'floating-popup font-modern font-extrabold text-sm sm:text-base px-4 py-1.5 rounded-full bg-slate-900/90 border shadow-xl';
+            el.style.color = color;
+            el.style.borderColor = color;
+            el.textContent = text;
+            document.body.appendChild(el);
+            setTimeout(() => el.remove(), 1350);
+        }
+
+        // --- 6. INTERFACE & DIALOGUE DE LYRA ---
+        function openLyraDialogue(mode = 'welcome', customText = null) {
+            const box = document.getElementById('lyra-dialogue-box');
+            const textEl = document.getElementById('lyra-dialogue-text');
+            box.classList.remove('hidden');
+
+            let message = "";
+            if (customText) {
+                message = customText;
+            } else if (mode === 'welcome') {
+                message = "Bonjour aventurier ! Je suis Lyra, la gardienne de l'univers 3D de Miky AKA BPM. Ramasse les 10 pièces d'or sur l'île pour ouvrir le premier portail vers la Forêt OpenClassrooms, visite l'Arène Infinie à droite, ou essaie la Borne d'Arcade !";
+            } else if (mode === 'rules') {
+                message = "C'est très simple : 10 pièces d'or ouvrent le Portail 1 (Forêt OpenClassrooms où 10 mobs gardent ses projets). 20 pièces ouvrent le Portail 2 (Projets Perso BPM) et 30 pièces ouvrent le Portail 3 (À Propos). Tu peux aussi gagner des pièces dans l'Arène Infinie ou sur la Borne d'Arcade !";
+            } else if (mode === 'bpm') {
+                message = BPM_VOICE_INTRO;
+            }
+
+            textEl.textContent = message;
+            audio.speak(message);
+        }
+
+        function updateHUDForZone() {
+            document.getElementById('hud-coins-text').textContent = `${GameState.coins} Pièce${GameState.coins > 1 ? 's' : ''}`;
+
+            const zBadge = document.getElementById('hud-zone-badge');
+            const qStatus = document.getElementById('hud-quest-status');
+            const objText = document.getElementById('objective-text');
+
+            if (GameState.currentZone === 'hub') {
+                zBadge.textContent = "ARCHIPEL";
+                if (GameState.coins < 10) {
+                    qStatus.textContent = `Pièces : ${GameState.coins} / 10`;
+                    objText.textContent = `Collecte ${10 - GameState.coins} pièce(s) de plus pour ouvrir le Portail Formation OpenClassrooms !`;
+                } else {
+                    qStatus.textContent = "Portails débloqués !";
+                    objText.textContent = "Approche d'un portail et appuie sur [E] pour voyager !";
+                }
+            } else if (GameState.currentZone === 'forest') {
+                zBadge.textContent = "FORÊT RPG";
+                qStatus.textContent = `Mobs : ${GameState.forestMobsDefeated} / 10`;
+                objText.textContent = GameState.forestMobsDefeated < 10
+                    ? `Élimine les 10 créatures avec ton épée [F] (${GameState.forestMobsDefeated}/10 vaincus) !`
+                    : "🎉 Tous les mobs sont vaincus ! Projets OpenClassrooms débloqués !";
+            } else if (GameState.currentZone === 'cyberlab') {
+                zBadge.textContent = "CYBER-LAB";
+                qStatus.textContent = `Cristaux : ${GameState.cyberCrystalsActivated} / 5`;
+                objText.textContent = GameState.cyberCrystalsActivated < 5
+                    ? `Synchronise les 5 cristaux d'énergie avec [E] (${GameState.cyberCrystalsActivated}/5) !`
+                    : "🚀 Projets Perso BPM débloqués !";
+            } else if (GameState.currentZone === 'temple') {
+                zBadge.textContent = "TEMPLE BPM";
+                qStatus.textContent = `Braseros : ${GameState.templeBraziersLit} / 4`;
+                objText.textContent = GameState.templeBraziersLit < 4
+                    ? `Allume les 4 braseros des passions avec [E] (${GameState.templeBraziersLit}/4) !`
+                    : "🏆 Fiche complète de Miky AKA BPM révélée !";
+            } else if (GameState.currentZone === 'arena') {
+                zBadge.textContent = "ARÈNE INFINIE";
+                qStatus.textContent = `Mobs tués : ${GameState.arenaKills}`;
+                objText.textContent = `⚔️ Survie Infinie : ${GameState.arenaKills} mob(s) éliminé(s) ! Appuie sur [F] ou Épée pour attaquer !`;
+            }
+        }
+
+        // --- 7. MODALES (À PROPOS & PROJETS) ---
+        function openBpmModal(withVoice = false) {
+            GameState.isModalOpen = true;
+            const modal = document.getElementById('bpm-modal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            if (withVoice) audio.speak(BPM_VOICE_INTRO);
+        }
+
+        function openProjectsModal(defaultTab = 'oc') {
+            GameState.isModalOpen = true;
+            const modal = document.getElementById('projects-modal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            renderProjectsTab(defaultTab);
+        }
+
+        function renderProjectsTab(tab) {
+            const ocBtn = document.getElementById('tab-oc-btn');
+            const persoBtn = document.getElementById('tab-perso-btn');
+            const grid = document.getElementById('projects-grid');
+
+            if (tab === 'oc') {
+                ocBtn.className = "px-4 py-2 rounded-xl text-xs sm:text-sm font-bold bg-emerald-500/25 border border-emerald-400 text-emerald-200 cursor-pointer";
+                persoBtn.className = "px-4 py-2 rounded-xl text-xs sm:text-sm font-bold bg-slate-800/80 border border-slate-700 text-slate-400 hover:text-white cursor-pointer";
+                grid.innerHTML = OPENCLASSROOMS_PROJECTS.map(p => createProjectCardHTML(p, 'emerald')).join('');
+            } else {
+                persoBtn.className = "px-4 py-2 rounded-xl text-xs sm:text-sm font-bold bg-sky-500/25 border border-sky-400 text-sky-200 cursor-pointer";
+                ocBtn.className = "px-4 py-2 rounded-xl text-xs sm:text-sm font-bold bg-slate-800/80 border border-slate-700 text-slate-400 hover:text-white cursor-pointer";
+                grid.innerHTML = PERSONAL_PROJECTS.map(p => createProjectCardHTML(p, 'sky')).join('');
+            }
+        }
+
+        function createProjectCardHTML(project, accent) {
+            return `
+                <div class="bg-slate-900/90 border border-slate-700/80 hover:border-${accent}-400/60 transition-all rounded-2xl p-4 sm:p-5 flex flex-col justify-between gap-4">
+                    <div>
+                        <div class="flex items-center justify-between gap-2 mb-2">
+                            <span class="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-${accent}-500/15 border border-${accent}-400/40 text-${accent}-300">
+                                ${project.badge}
+                            </span>
+                            ${project.liveUrl ? `<span class="text-[11px] font-bold text-amber-300 flex items-center gap-1"><i class="fa-solid fa-globe"></i> Démo Live</span>` : ''}
+                        </div>
+                        <h4 class="font-modern text-lg font-extrabold text-white mb-2">${project.title}</h4>
+                        <p class="text-slate-300 text-xs sm:text-sm leading-relaxed mb-3">${project.summary}</p>
+                        <div class="flex flex-wrap gap-1.5">
+                            ${project.tags.map(t => `<span class="text-[10px] font-code px-2 py-0.5 rounded bg-slate-800 text-slate-300 border border-slate-700">${t}</span>`).join('')}
+                        </div>
+                    </div>
+
+                    <div class="flex flex-wrap gap-2 pt-2 border-t border-slate-800/80">
+                        <a href="${project.githubUrl}" target="_blank" rel="noopener noreferrer" class="flex-1 py-2.5 px-3 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-600 text-white font-bold text-xs flex items-center justify-center gap-2 transition-colors">
+                            <i class="fa-brands fa-github text-sm"></i>
+                            <span>Dépôt GitHub</span>
+                        </a>
+                        ${project.liveUrl ? `
+                            <a href="${project.liveUrl}" target="_blank" rel="noopener noreferrer" class="flex-1 py-2.5 px-3 rounded-xl bg-gradient-to-r from-${accent}-500 to-indigo-600 hover:opacity-90 text-white font-bold text-xs flex items-center justify-center gap-2 shadow transition-opacity">
+                                <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                                <span>GitHub Page Live</span>
+                            </a>
+                        ` : ''}
+                    </div>
+                </div>
+            `;
+        }
+
+        function closeAllModals() {
+            GameState.isModalOpen = false;
+            ['bpm-modal', 'projects-modal', 'arcade-modal'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) {
+                    el.classList.add('hidden');
+                    el.classList.remove('flex');
+                }
+            });
+            stopArcadeGames();
+        }
+
+        // --- 8. CONTRÔLES CLAVIER, SOURIS & TACTILE ---
+        function setupControls() {
+            window.addEventListener('keydown', e => {
+                if (GameState.isModalOpen) {
+                    if (e.key === 'Escape') closeAllModals();
+                    return;
+                }
+                const k = e.key.toLowerCase();
+                if (k === 'w' || k === 'z') keys.w = true;
+                if (k === 's') keys.s = true;
+                if (k === 'a' || k === 'q') keys.a = true;
+                if (k === 'd') keys.d = true;
+                if (e.key === 'ArrowUp') keys.up = true;
+                if (e.key === 'ArrowDown') keys.down = true;
+                if (e.key === 'ArrowLeft') keys.left = true;
+                if (e.key === 'ArrowRight') keys.right = true;
+
+                if (k === 'f' || e.code === 'Space') {
+                    e.preventDefault();
+                    performSwordAttack();
+                }
+                if (k === 'e' || e.key === 'Enter') {
+                    triggerInteraction();
+                }
+            });
+
+            window.addEventListener('keyup', e => {
+                const k = e.key.toLowerCase();
+                if (k === 'w' || k === 'z') keys.w = false;
+                if (k === 's') keys.s = false;
+                if (k === 'a' || k === 'q') keys.a = false;
+                if (k === 'd') keys.d = false;
+                if (e.key === 'ArrowUp') keys.up = false;
+                if (e.key === 'ArrowDown') keys.down = false;
+                if (e.key === 'ArrowLeft') keys.left = false;
+                if (e.key === 'ArrowRight') keys.right = false;
+            });
+
+            const raycaster = new THREE.Raycaster();
+            const mouse = new THREE.Vector2();
+            const groundPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
+            let downX = 0, downY = 0;
+
+            renderer.domElement.addEventListener('pointerdown', e => {
+                if (GameState.isModalOpen) return;
+                isDraggingCamera = true;
+                prevPointerX = e.clientX;
+                downX = e.clientX;
+                downY = e.clientY;
+            });
+
+            window.addEventListener('pointermove', e => {
+                if (!isDraggingCamera) return;
+                const dx = e.clientX - prevPointerX;
+                cameraAngle -= dx * 0.006;
+                prevPointerX = e.clientX;
+            });
+
+            window.addEventListener('pointerup', e => {
+                if (!isDraggingCamera) return;
+                isDraggingCamera = false;
+                if (Math.hypot(e.clientX - downX, e.clientY - downY) < 8 && GameState.isPlaying && !GameState.isModalOpen) {
+                    mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
+                    mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
+                    raycaster.setFromCamera(mouse, camera);
+                    const hitPoint = new THREE.Vector3();
+                    if (raycaster.ray.intersectPlane(groundPlane, hitPoint)) {
+                        const maxR = 29;
+                        if (hitPoint.length() > maxR) hitPoint.setLength(maxR);
+                        playerState.clickTarget = hitPoint;
+                        targetMarker.position.set(hitPoint.x, 0.06, hitPoint.z);
+                        targetMarker.visible = true;
+                    }
+                }
+            });
+
+            // Joystick mobile
+            const joyZone = document.getElementById('joystick-zone');
+            const joyKnob = document.getElementById('joystick-knob');
+            const maxJoyDist = 36;
+
+            function handleJoystickMove(clientX, clientY) {
+                const rect = joyZone.getBoundingClientRect();
+                const cx = rect.left + rect.width / 2;
+                const cy = rect.top + rect.height / 2;
+                let dx = clientX - cx;
+                let dy = clientY - cy;
+                const dist = Math.hypot(dx, dy);
+                if (dist > maxJoyDist) {
+                    dx = (dx / dist) * maxJoyDist;
+                    dy = (dy / dist) * maxJoyDist;
+                }
+                joyKnob.style.transform = `translate(${dx}px, ${dy}px)`;
+                joystickInput.x = dx / maxJoyDist;
+                joystickInput.y = dy / maxJoyDist;
+                playerState.clickTarget = null;
+                targetMarker.visible = false;
+            }
+
+            joyZone.addEventListener('pointerdown', e => {
+                e.stopPropagation();
+                joystickInput.active = true;
+                joyZone.setPointerCapture(e.pointerId);
+                handleJoystickMove(e.clientX, e.clientY);
+            });
+
+            joyZone.addEventListener('pointermove', e => {
+                if (!joystickInput.active) return;
+                handleJoystickMove(e.clientX, e.clientY);
+            });
+
+            const resetJoystick = () => {
+                joystickInput.active = false;
+                joystickInput.x = 0;
+                joystickInput.y = 0;
+                joyKnob.style.transform = `translate(0px, 0px)`;
+            };
+            joyZone.addEventListener('pointerup', resetJoystick);
+            joyZone.addEventListener('pointercancel', resetJoystick);
+        }
+
+        // --- 9. BOUCLE D'ANIMATION PRINCIPALE ---
+        function animate() {
+            requestAnimationFrame(animate);
+            const dt = Math.min(clock.getDelta(), 0.05);
+            const elapsed = clock.getElapsedTime();
+
+            if (GameState.isPlaying && !GameState.isModalOpen) {
+                updatePlayerMovement(dt, elapsed);
+            }
+
+            updateWorldEntities(dt, elapsed);
+            updateCamera();
+            renderer.render(scene, camera);
+        }
+
+        function updatePlayerMovement(dt, elapsed) {
+            let moveX = 0;
+            let moveZ = 0;
+
+            if (keys.w || keys.up) moveZ -= 1;
+            if (keys.s || keys.down) moveZ += 1;
+            if (keys.a || keys.left) moveX -= 1;
+            if (keys.d || keys.right) moveX += 1;
+
+            if (joystickInput.active) {
+                moveX = joystickInput.x;
+                moveZ = joystickInput.y;
+            }
+
+            let isMoving = false;
+            const moveVec = new THREE.Vector3();
+
+            if (Math.hypot(moveX, moveZ) > 0.05) {
+                playerState.clickTarget = null;
+                targetMarker.visible = false;
+
+                const forward = new THREE.Vector3(-Math.sin(cameraAngle), 0, -Math.cos(cameraAngle));
+                const right = new THREE.Vector3(Math.cos(cameraAngle), 0, -Math.sin(cameraAngle));
+                moveVec.addScaledVector(forward, -moveZ).addScaledVector(right, moveX).normalize();
+                isMoving = true;
+            } else if (playerState.clickTarget) {
+                const toTarget = new THREE.Vector3().subVectors(playerState.clickTarget, playerState.position);
+                toTarget.y = 0;
+                if (toTarget.length() > 0.35) {
+                    moveVec.copy(toTarget).normalize();
+                    isMoving = true;
+                } else {
+                    playerState.clickTarget = null;
+                    targetMarker.visible = false;
+                }
+            }
+
+            if (isMoving) {
+                playerState.position.addScaledVector(moveVec, playerState.speed * dt);
+                const maxRadius = 29;
+                if (playerState.position.length() > maxRadius) {
+                    playerState.position.setLength(maxRadius);
+                }
+
+                const targetRot = Math.atan2(moveVec.x, moveVec.z);
+                let diff = targetRot - playerState.rotationY;
+                while (diff > Math.PI) diff -= Math.PI * 2;
+                while (diff < -Math.PI) diff += Math.PI * 2;
+                playerState.rotationY += diff * 12 * dt;
+
+                playerState.walkCycle += dt * 11;
+                leftLeg.rotation.x = Math.sin(playerState.walkCycle) * 0.65;
+                rightLeg.rotation.x = -Math.sin(playerState.walkCycle) * 0.65;
+                leftArm.rotation.x = -Math.sin(playerState.walkCycle) * 0.5;
+                capeMesh.rotation.x = 0.35 + Math.sin(playerState.walkCycle * 1.5) * 0.12;
+            } else {
+                leftLeg.rotation.x *= 0.8;
+                rightLeg.rotation.x *= 0.8;
+                leftArm.rotation.x *= 0.8;
+                capeMesh.rotation.x = 0.15 + Math.sin(elapsed * 2) * 0.04;
+            }
+
+            if (playerState.attackTimer > 0) {
+                playerState.attackTimer -= dt;
+                rightArm.rotation.x = -Math.PI * 0.75 * Math.sin((playerState.attackTimer / 0.35) * Math.PI);
+            } else if (!isMoving) {
+                rightArm.rotation.x *= 0.8;
+            }
+
+            playerGroup.position.copy(playerState.position);
+            playerGroup.rotation.y = playerState.rotationY;
+        }
+
+        function updateWorldEntities(dt, elapsed) {
+            if (floatingParticles) {
+                floatingParticles.rotation.y = elapsed * 0.04;
+            }
+
+            // Animation des 10 pièces d'or & collecte
+            hubCoins.forEach(coin => {
+                if (coin.collected) return;
+                coin.mesh.rotation.x += dt * 2.6;
+                coin.mesh.position.y = 1.0 + Math.sin(elapsed * 3.5 + coin.mesh.position.x) * 0.2;
+
+                if (playerState.position.distanceTo(coin.mesh.position) < 1.8) {
+                    coin.collected = true;
+                    worldGroup.remove(coin.mesh);
+                    GameState.coins++;
+                    audio.playCoin();
+                    spawnFloatingPopup("🪙 +1 Pièce d'Or !", "#facc15");
+                    updateHUDForZone();
+
+                    if (GameState.coins === 10 || GameState.coins === 20 || GameState.coins === 30) {
+                        audio.playFanfare();
+                        loadZone('hub');
+                        audio.speak(`Félicitations ! Tu as atteint ${GameState.coins} pièces d'or ! Un nouveau portail dimensionnel vient de s'ouvrir !`);
+                    }
+                }
+            });
+
+            hubPortals.forEach(p => {
+                p.vortex.material.opacity = 0.65 + Math.sin(elapsed * 4) * 0.2;
+            });
+
+            // Mouvement des 10 Mobs dans la forêt
+            forestMobs.forEach(mob => {
+                if (!mob.alive) return;
+                mob.group.position.x = mob.basePos.x + Math.sin(elapsed * 1.4 + mob.phase) * 2.2;
+                mob.group.position.z = mob.basePos.z + Math.cos(elapsed * 1.2 + mob.phase) * 2.2;
+                mob.body.position.y = 0.95 + Math.abs(Math.sin(elapsed * 4 + mob.phase)) * 0.35;
+                mob.group.lookAt(playerState.position.x, 0, playerState.position.z);
+            });
+
+            // Logique de l'Arène Infinie
+            if (GameState.currentZone === 'arena' && GameState.isPlaying) {
+                arenaSpawnTimer += dt;
+                const activeCount = arenaMobs.filter(m => m.alive).length;
+                if (arenaSpawnTimer > 1.6 && activeCount < 12) {
+                    arenaSpawnTimer = 0;
+                    spawnSingleArenaMob();
+                }
+
+                arenaMobs.forEach(mob => {
+                    if (!mob.alive) return;
+                    const toPlayer = new THREE.Vector3().subVectors(playerState.position, mob.group.position);
+                    toPlayer.y = 0;
+                    const d = toPlayer.length();
+                    if (d > 2.2) {
+                        toPlayer.normalize();
+                        mob.group.position.addScaledVector(toPlayer, mob.speed * dt);
+                    }
+                    mob.body.rotation.y += dt * 2.5;
+                    mob.body.position.y = (mob.isElite ? 1.2 : 0.9) + Math.abs(Math.sin(elapsed * 4.5 + mob.phase)) * 0.3;
+                });
+            }
+
+            cyberCrystals.forEach((c, idx) => {
+                c.crystal.rotation.y += dt * 1.8;
+                c.crystal.position.y = 1.6 + Math.sin(elapsed * 3 + idx) * 0.2;
+            });
+
+            templeBraziers.forEach((b, idx) => {
+                if (b.lit && b.flame) {
+                    b.flame.scale.y = 1 + Math.sin(elapsed * 12 + idx) * 0.18;
+                    b.flame.rotation.y += dt * 3;
+                }
+            });
+
+            // Détection de proximité pour l'invite [E]
+            let found = null;
+
+            if (GameState.currentZone === 'hub') {
+                if (lyraNpc && playerState.position.distanceTo(lyraNpc.position) < 3.8) {
+                    found = {
+                        type: 'lyra',
+                        title: "Parler à Lyra (Guide)",
+                        subtitle: "PNJ • Histoire & Mission",
+                        icon: "fa-solid fa-comment-dots"
+                    };
+                }
+
+                if (arcadeCabinet && playerState.position.distanceTo(arcadeCabinet.position) < 3.6) {
+                    found = {
+                        type: 'arcade',
+                        title: "Borne d'Arcade BPM",
+                        subtitle: "Mini-Jeux & Pièces Bonus",
+                        icon: "fa-solid fa-gamepad"
+                    };
+                }
+
+                hubPortals.forEach(p => {
+                    if (playerState.position.distanceTo(p.position) < 4.2) {
+                        const unlocked = GameState.coins >= p.requiredCoins;
+                        const titles = {
+                            forest: "Portail Formation OpenClassrooms",
+                            cyberlab: "Portail Projets Perso BPM",
+                            temple: "Portail À Propos de BPM",
+                            arena: "Portail Arène de Combat Infinie"
+                        };
+                        found = {
+                            type: 'portal',
+                            data: p,
+                            title: titles[p.id] || "Portail Dimensionnel",
+                            subtitle: unlocked ? "Portail Ouvert • Traverser" : `Verrouillé (${GameState.coins}/${p.requiredCoins} Pièces)`,
+                            icon: unlocked ? "fa-solid fa-door-open" : "fa-solid fa-lock"
+                        };
+                    }
+                });
+            } else {
+                if (returnPortal && playerState.position.distanceTo(returnPortal.position) < 4.2) {
+                    found = {
+                        type: 'return',
+                        title: "Portail de Retour",
+                        subtitle: "Revenir à l'Archipel Central",
+                        icon: "fa-solid fa-rotate-left"
+                    };
+                }
+
+                if (GameState.currentZone === 'cyberlab') {
+                    cyberCrystals.forEach((c, idx) => {
+                        if (!c.activated && playerState.position.distanceTo(c.position) < 3.2) {
+                            found = {
+                                type: 'crystal',
+                                data: c,
+                                title: `Synchroniser Cristal #${idx + 1}`,
+                                subtitle: "Activer l'énergie BPM",
+                                icon: "fa-solid fa-gem"
+                            };
+                        }
+                    });
+                }
+
+                if (GameState.currentZone === 'temple') {
+                    templeBraziers.forEach(b => {
+                        if (!b.lit && playerState.position.distanceTo(b.position) < 3.2) {
+                            found = {
+                                type: 'brazier',
+                                data: b,
+                                title: `Allumer : ${b.title}`,
+                                subtitle: "Révéler une passion de BPM",
+                                icon: "fa-solid fa-fire"
+                            };
+                        }
+                    });
+                }
+            }
+
+            GameState.nearestInteractable = found;
+            const promptEl = document.getElementById('interaction-prompt');
+            if (found && !GameState.isModalOpen) {
+                promptEl.classList.remove('hidden');
+                document.getElementById('interact-title').textContent = found.title;
+                document.getElementById('interact-subtitle').textContent = `${found.subtitle} • [E] ou Clic`;
+                document.getElementById('interact-icon').innerHTML = `<i class="${found.icon}"></i>`;
+            } else {
+                promptEl.classList.add('hidden');
+            }
+        }
+
+        function updateCamera() {
+            const dist = 14.5;
+            const height = 9.5;
+            const targetCamPos = new THREE.Vector3(
+                playerState.position.x + Math.sin(cameraAngle) * dist,
+                playerState.position.y + height,
+                playerState.position.z + Math.cos(cameraAngle) * dist
+            );
+            camera.position.lerp(targetCamPos, 0.1);
+            camera.lookAt(playerState.position.x, playerState.position.y + 1.4, playerState.position.z);
+        }
+
+        // --- 10. INITIALISATION DES ÉVÉNEMENTS UI ---
+        window.onload = function () {
+            initThree();
+            animate();
+
+            document.getElementById('start-adventure-btn').addEventListener('click', async () => {
+                await audio.initTone();
+                document.getElementById('welcome-screen').classList.add('hidden');
+                GameState.isPlaying = true;
+                openLyraDialogue('welcome');
+            });
+
+            document.getElementById('interact-btn').addEventListener('click', triggerInteraction);
+            document.getElementById('sword-attack-btn').addEventListener('click', performSwordAttack);
+
+            // Dialogue Lyra
+            document.getElementById('hud-talk-lyra-btn').addEventListener('click', () => openLyraDialogue('welcome'));
+            document.getElementById('close-dialogue-btn').addEventListener('click', () => {
+                document.getElementById('lyra-dialogue-box').classList.add('hidden');
+                audio.stopSpeech();
+            });
+            document.getElementById('dlg-rules-btn').addEventListener('click', () => openLyraDialogue('rules'));
+            document.getElementById('dlg-bpm-btn').addEventListener('click', () => openLyraDialogue('bpm'));
+            document.getElementById('dlg-replay-voice-btn').addEventListener('click', () => {
+                audio.speak(document.getElementById('lyra-dialogue-text').textContent);
+            });
+            document.getElementById('dlg-respawn-coins-btn').addEventListener('click', () => {
+                if (GameState.currentZone !== 'hub') {
+                    loadZone('hub');
+                } else {
+                    spawnHubCoins();
+                }
+                audio.playCoin();
+                const msg = "Et voilà ! 10 nouvelles pièces d'or viennent d'apparaître sur l'archipel pour ouvrir les autres portails !";
+                document.getElementById('lyra-dialogue-text').textContent = msg;
+                audio.speak(msg);
+            });
+
+            // Modale Présentation BPM
+            document.getElementById('hud-about-bpm-btn').addEventListener('click', () => openBpmModal(false));
+            document.getElementById('bpm-voice-btn').addEventListener('click', () => audio.speak(BPM_VOICE_INTRO));
+            document.getElementById('close-bpm-modal').addEventListener('click', () => {
+                closeAllModals();
+                audio.stopSpeech();
+            });
+
+            // Modale Projets
+            document.getElementById('hud-projects-btn').addEventListener('click', () => openProjectsModal('oc'));
+            document.getElementById('tab-oc-btn').addEventListener('click', () => renderProjectsTab('oc'));
+            document.getElementById('tab-perso-btn').addEventListener('click', () => renderProjectsTab('perso'));
+            document.getElementById('close-projects-modal').addEventListener('click', closeAllModals);
+
+            // Modale Borne d'Arcade & Mini-Jeux
+            document.getElementById('hud-minigames-btn').addEventListener('click', openArcadeModal);
+            document.getElementById('close-arcade-modal').addEventListener('click', closeAllModals);
+            setupArcadeMiniGames();
+
+            // Bouton Audio Global
+            document.getElementById('toggle-sound-btn').addEventListener('click', () => {
+                audio.enabled = !audio.enabled;
+                if (!audio.enabled) audio.stopSpeech();
+                document.getElementById('sound-icon').className = audio.enabled
+                    ? 'fa-solid fa-volume-high text-base'
+                    : 'fa-solid fa-volume-xmark text-base text-slate-500';
+            });
+        };
+
+        // --- 11. LOGIQUE DES MINI-JEUX (BPM RHYTHM BEAT & CYBER MEMORY) ---
+        let rhythmInterval = null;
+        let rhythmAnimFrame = null;
+        let rhythmNotes = [];
+        let rhythmScore = 0;
+        let rhythmRunning = false;
+
+        let simonSeq = [];
+        let simonUserIdx = 0;
+        let simonAccepting = false;
+
+        function openArcadeModal() {
+            GameState.isModalOpen = true;
+            const modal = document.getElementById('arcade-modal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        function stopArcadeGames() {
+            rhythmRunning = false;
+            if (rhythmInterval) clearInterval(rhythmInterval);
+            if (rhythmAnimFrame) cancelAnimationFrame(rhythmAnimFrame);
+            rhythmNotes.forEach(n => n.el.remove());
+            rhythmNotes = [];
+            simonAccepting = false;
+        }
+
+        function setupArcadeMiniGames() {
+            const tabRhythm = document.getElementById('mg-tab-rhythm');
+            const tabSimon = document.getElementById('mg-tab-simon');
+            const panelRhythm = document.getElementById('mg-panel-rhythm');
+            const panelSimon = document.getElementById('mg-panel-simon');
+
+            tabRhythm.addEventListener('click', () => {
+                stopArcadeGames();
+                tabRhythm.className = "flex-1 py-2 px-3 rounded-xl text-xs sm:text-sm font-bold bg-purple-500/25 border border-purple-400 text-purple-200 cursor-pointer";
+                tabSimon.className = "flex-1 py-2 px-3 rounded-xl text-xs sm:text-sm font-bold bg-slate-800/80 border border-slate-700 text-slate-400 hover:text-white cursor-pointer";
+                panelRhythm.classList.remove('hidden');
+                panelSimon.classList.add('hidden');
+            });
+
+            tabSimon.addEventListener('click', () => {
+                stopArcadeGames();
+                tabSimon.className = "flex-1 py-2 px-3 rounded-xl text-xs sm:text-sm font-bold bg-sky-500/25 border border-sky-400 text-sky-200 cursor-pointer";
+                tabRhythm.className = "flex-1 py-2 px-3 rounded-xl text-xs sm:text-sm font-bold bg-slate-800/80 border border-slate-700 text-slate-400 hover:text-white cursor-pointer";
+                panelSimon.classList.remove('hidden');
+                panelRhythm.classList.add('hidden');
+            });
+
+            // --- MINI-JEU 1 : RHYTHM BEAT ---
+            const laneColors = ['bg-sky-400', 'bg-emerald-400', 'bg-amber-400', 'bg-pink-400'];
+            const laneFreqs = ['C4', 'E4', 'G4', 'B4'];
+            const lanes = document.querySelectorAll('.rhythm-lane');
+
+            function hitRhythmLane(laneIdx) {
+                if (audio.enabled && audio.initialized) {
+                    audio.synth.triggerAttackRelease(laneFreqs[laneIdx], "16n");
+                }
+                const targetIdx = rhythmNotes.findIndex(n => n.lane === laneIdx && n.y >= 135 && n.y <= 210);
+                if (targetIdx !== -1) {
+                    const hit = rhythmNotes[targetIdx];
+                    hit.el.remove();
+                    rhythmNotes.splice(targetIdx, 1);
+                    rhythmScore += 10;
+                    document.getElementById('rhythm-score').textContent = rhythmScore;
+                    if (rhythmScore % 50 === 0) {
+                        GameState.coins++;
+                        audio.playCoin();
+                        updateHUDForZone();
+                        spawnFloatingPopup("🎼 +1 Pièce Rhythm !", "#c084fc");
+                    }
+                }
+            }
+
+            document.querySelectorAll('.rhythm-pad').forEach(btn => {
+                btn.addEventListener('click', () => hitRhythmLane(parseInt(btn.dataset.lane, 10)));
+            });
+
+            window.addEventListener('keydown', e => {
+                if (!rhythmRunning) return;
+                const map = { KeyD: 0, KeyF: 1, KeyJ: 2, KeyK: 3 };
+                if (e.code in map) hitRhythmLane(map[e.code]);
+            });
+
+            document.getElementById('start-rhythm-btn').addEventListener('click', () => {
+                stopArcadeGames();
+                rhythmScore = 0;
+                document.getElementById('rhythm-score').textContent = '0';
+                rhythmRunning = true;
+
+                rhythmInterval = setInterval(() => {
+                    if (!rhythmRunning) return;
+                    const lane = Math.floor(Math.random() * 4);
+                    const noteEl = document.createElement('div');
+                    noteEl.className = `absolute top-0 w-10 h-4 rounded-full ${laneColors[lane]} shadow-lg pointer-events-none`;
+                    lanes[lane].appendChild(noteEl);
+                    rhythmNotes.push({ lane, y: 0, el: noteEl });
+                }, 1250);
+
+                const stepRhythm = () => {
+                    if (!rhythmRunning) return;
+                    for (let i = rhythmNotes.length - 1; i >= 0; i--) {
+                        const n = rhythmNotes[i];
+                        n.y += 1.8;
+                        n.el.style.transform = `translateY(${n.y}px)`;
+                        if (n.y > 225) {
+                            n.el.remove();
+                            rhythmNotes.splice(i, 1);
+                        }
+                    }
+                    rhythmAnimFrame = requestAnimationFrame(stepRhythm);
+                };
+                stepRhythm();
+            });
+
+            // --- MINI-JEU 2 : CYBER MEMORY CODE ---
+            const simonPads = document.querySelectorAll('.simon-btn');
+            const simonNotes = ['C4', 'E4', 'G4', 'C5'];
+
+            function flashSimonPad(idx) {
+                const pad = simonPads[idx];
+                pad.classList.add('scale-105', 'brightness-150', 'shadow-lg');
+                if (audio.enabled && audio.initialized) {
+                    audio.synth.triggerAttackRelease(simonNotes[idx], "8n");
+                }
+                setTimeout(() => pad.classList.remove('scale-105', 'brightness-150', 'shadow-lg'), 280);
+            }
+
+            function playSimonSequence() {
+                simonAccepting = false;
+                simonUserIdx = 0;
+                document.getElementById('simon-status').textContent = "Observe bien la séquence...";
+                simonSeq.forEach((padIdx, i) => {
+                    setTimeout(() => {
+                        flashSimonPad(padIdx);
+                        if (i === simonSeq.length - 1) {
+                            setTimeout(() => {
+                                simonAccepting = true;
+                                document.getElementById('simon-status').textContent = "À ton tour !";
+                            }, 350);
+                        }
+                    }, (i + 1) * 580);
+                });
+            }
+
+            simonPads.forEach(pad => {
+                pad.addEventListener('click', () => {
+                    if (!simonAccepting) return;
+                    const idx = parseInt(pad.dataset.pad, 10);
+                    flashSimonPad(idx);
+
+                    if (idx === simonSeq[simonUserIdx]) {
+                        simonUserIdx++;
+                        if (simonUserIdx >= simonSeq.length) {
+                            simonAccepting = false;
+                            GameState.coins += 2;
+                            audio.playCoin();
+                            updateHUDForZone();
+                            spawnFloatingPopup("🧠 +2 Pièces Memory !", "#38bdf8");
+                            document.getElementById('simon-level').textContent = simonSeq.length + 1;
+                            simonSeq.push(Math.floor(Math.random() * 4));
+                            setTimeout(playSimonSequence, 700);
+                        }
+                    } else {
+                        simonAccepting = false;
+                        document.getElementById('simon-status').textContent = "❌ Erreur ! Clique sur Démarrer pour rejouer.";
+                    }
+                });
+            });
+
+            document.getElementById('start-simon-btn').addEventListener('click', () => {
+                simonSeq = [Math.floor(Math.random() * 4)];
+                document.getElementById('simon-level').textContent = '1';
+                playSimonSequence();
+            });
+        }
+    </script>
+</body>
+</html>
